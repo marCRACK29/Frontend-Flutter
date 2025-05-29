@@ -1,0 +1,47 @@
+class ApiEndpoints {
+  // Base URLs
+  static const String baseUrl = 'http://localhost:5000/api'; // Tu Flask backend
+  static const String osmBaseUrl = 'https://nominatim.openstreetmap.org';
+  static const String osmTileUrl =
+      'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';
+
+  // Auth endpoints
+  static const String login = '/auth/login';
+  static const String register = '/auth/register';
+  static const String logout = '/auth/logout';
+  static const String refreshToken = '/auth/refresh';
+  static const String profile = '/auth/profile';
+
+  // Maps endpoints
+  static const String routes = '/maps/routes';
+  static const String locations = '/maps/locations';
+  static const String places = '/maps/places';
+  static const String saveRoute = '/maps/routes/save';
+
+  // OSM endpoints
+  static const String osmSearch = '/search';
+  static const String osmReverse = '/reverse';
+  static const String osmDetails = '/details';
+
+  // Helper methods
+  static String getUserRoutes(String userId) => '/maps/routes/user/$userId';
+  static String getRouteById(String routeId) => '/maps/routes/$routeId';
+  static String deleteRoute(String routeId) => '/maps/routes/$routeId';
+
+  // OSM helpers
+  static String osmSearchUrl({
+    required String query,
+    String format = 'json',
+    int limit = 5,
+  }) {
+    return '$osmBaseUrl$osmSearch?q=$query&format=$format&limit=$limit&addressdetails=1';
+  }
+
+  static String osmReverseUrl({
+    required double lat,
+    required double lon,
+    String format = 'json',
+  }) {
+    return '$osmBaseUrl$osmReverse?lat=$lat&lon=$lon&format=$format&addressdetails=1';
+  }
+}
