@@ -17,9 +17,13 @@ class MapWidget extends StatelessWidget {
       options: MapOptions(
         initialCenter: mapState.currentLocation ?? const LatLng(0, 0),
         initialZoom: 15,
+        minZoom: 0,
+        maxZoom: 100,
       ),
       children: [
-        TileLayer(urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png"),
+        TileLayer(
+          urlTemplate: "https://tile.openstreetmap.org/{z}/{x}/{y}.png",
+        ),
         CurrentLocationLayer(
           style: const LocationMarkerStyle(
             marker: DefaultLocationMarker(
@@ -36,13 +40,9 @@ class MapWidget extends StatelessWidget {
                 point: mapState.destination!,
                 width: 50,
                 height: 50,
-                child: Icon(
-                  Icons.location_pin,
-                  size: 40,
-                  color: Colors.red,
-                ),
+                child: Icon(Icons.location_pin, size: 40, color: Colors.red),
               ),
-            ]
+            ],
           ),
         if (mapState.route.isNotEmpty)
           PolylineLayer(
@@ -52,7 +52,7 @@ class MapWidget extends StatelessWidget {
                 strokeWidth: 5,
                 color: Colors.red,
               ),
-            ]
+            ],
           ),
       ],
     );
