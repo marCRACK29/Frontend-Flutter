@@ -1,6 +1,9 @@
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 class ApiEndpoints {
   // Base URLs
-  static const String baseUrl = 'http://localhost:5000/api'; // Tu Flask backend
+  static final String baseUrl =
+      dotenv.env['API_URL'] ?? 'http://localhost:5000'; // Tu Flask backend
   static const String osmBaseUrl = 'https://nominatim.openstreetmap.org';
   static const String osmTileUrl =
       'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png';

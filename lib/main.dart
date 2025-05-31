@@ -2,13 +2,14 @@ import 'package:flutter/material.dart';
 import 'package:frontend/features/maps/providers/map_provider.dart';
 import 'package:frontend/features/maps/views/openstreetmap_view.dart';
 import 'package:provider/provider.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(); // carga las variables de entorno
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => MapProvider()),
-      ],
+      providers: [ChangeNotifierProvider(create: (_) => MapProvider())],
       child: const MyApp(),
     ),
   );
