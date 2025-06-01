@@ -4,13 +4,18 @@ import 'package:frontend/features/maps/views/openstreetmap_view.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/shared/test_connection_screen.dart';
+import 'package:frontend/features/tracking/services/tracking_service.dart';
+import 'features/tracking/views/tracking_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(); // carga las variables de entorno
   runApp(
     MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => MapProvider())],
+      providers: [
+        ChangeNotifierProvider(create: (_) => MapProvider()),
+        ChangeNotifierProvider(create: (_) => TrackingService()),
+      ],
       child: const MyApp(),
     ),
   );
@@ -25,13 +30,19 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: '/',
       routes: {
-        '/': (context) => const HomeScreen(), // Nuevo menú de navegación
-        '/map': (context) => const OpenStreetMapView(), // Pantalla del mapa
-        '/test': (context) => TestConnectionScreen(), // Pantalla para el test de conexión
+        '/': (context) => const HomeScreen(),
+        '/map': (context) => const OpenStreetMapView(),
+        '/test': (context) => TestConnectionScreen(),
+        '/tracking': (context) => const TrackingScreen(
+          envioId: 2,
+          userType: 'cliente',
+          userId: '21.595.655-5',
+        ),
       },
     );
   }
 }
+
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -55,6 +66,12 @@ class HomeScreen extends StatelessWidget {
                 Navigator.pushReplacementNamed(context, '/test');
               },
               child: const Text('Probar conexión Backend'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/tracking');
+              },
+              child: const Text('Monitoreo de envíos'),
             ),
           ],
         ),
