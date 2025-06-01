@@ -4,6 +4,8 @@ import 'package:frontend/features/maps/views/openstreetmap_view.dart';
 import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/shared/test_connection_screen.dart';
+import 'package:frontend/features/orders/views/orders_home_view.dart';
+
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -28,6 +30,7 @@ class MyApp extends StatelessWidget {
         '/': (context) => const HomeScreen(), // Nuevo menú de navegación
         '/map': (context) => const OpenStreetMapView(), // Pantalla del mapa
         '/test': (context) => TestConnectionScreen(), // Pantalla para el test de conexión
+        '/orders': (context) => const OrdersHomeView(), // Pantalla para el menu de ordenes
       },
     );
   }
@@ -55,6 +58,12 @@ class HomeScreen extends StatelessWidget {
                 Navigator.pushReplacementNamed(context, '/test');
               },
               child: const Text('Probar conexión Backend'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/orders');
+              },
+              child: const Text('Órdenes'),
             ),
           ],
         ),

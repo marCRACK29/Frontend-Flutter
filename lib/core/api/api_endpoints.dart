@@ -26,6 +26,12 @@ class ApiEndpoints {
   static const String osmReverse = '/reverse';
   static const String osmDetails = '/details';
 
+  // Orders endpoints
+  static const String createEnvio = "/api/envios";
+  static const String misEnvios = "/api/envios/mis";
+  static String actualizarEstado(int id) => "/api/envios/$id/estado";
+  static String cancelarEnvio(int id) => "/api/envios/$id";
+
   // Helper methods
   static String getUserRoutes(String userId) => '/maps/routes/user/$userId';
   static String getRouteById(String routeId) => '/maps/routes/$routeId';
