@@ -1,3 +1,9 @@
+
+enum UserKind {
+  client,
+  delivery,
+}
+
 class User {
   final String id;
   final String email;
@@ -6,6 +12,7 @@ class User {
   final DateTime? createdAt;
   final DateTime? lastLogin;
   final bool isActive;
+  final UserKind kind;
 
   User({
     required this.id,
@@ -15,7 +22,10 @@ class User {
     this.createdAt,
     this.lastLogin,
     this.isActive = true,
+    this.kind = UserKind.client,
   });
+  
+  
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
@@ -30,6 +40,7 @@ class User {
           ? DateTime.parse(json['last_login']) 
           : null,
       isActive: json['is_active'] ?? true,
+       kind: _parseUserKind(json['kind']),
     );
   }
 
@@ -42,6 +53,7 @@ class User {
       'created_at': createdAt?.toIso8601String(),
       'last_login': lastLogin?.toIso8601String(),
       'is_active': isActive,
+      'kind': kind.name,
     };
   }
 
@@ -53,6 +65,7 @@ class User {
     DateTime? createdAt,
     DateTime? lastLogin,
     bool? isActive,
+    UserKind? kind,
   }) {
     return User(
       id: id ?? this.id,
@@ -62,12 +75,25 @@ class User {
       createdAt: createdAt ?? this.createdAt,
       lastLogin: lastLogin ?? this.lastLogin,
       isActive: isActive ?? this.isActive,
+      kind: kind ?? this.kind,
     );
   }
 
   @override
   String toString() {
-    return 'User(id: $id, email: $email, name: $name)';
+    return 'User(id: $id, email: $email, name: $name, kind: ${kind.name})';
+  }
+  static UserKind _parseUserKind(dynamic value) {
+    if (value == null) return UserKind.client;
+    
+    try {
+      return UserKind.values.firstWhere(
+        (kind) => kind.name == value.toString().toLowerCase(),
+        orElse: () => UserKind.client,
+      );
+    } catch (e) {
+      return UserKind.client;
+    }
   }
 
   @override
@@ -82,7 +108,7 @@ class User {
 
 class LoginRequest {
   final String email;
-  final String password;
+  final String password; 
   final bool rememberMe;
 
   LoginRequest({
