@@ -1,23 +1,19 @@
-// lib/features/tracking/widgets/envio_status_timeline.dart
 import 'package:flutter/material.dart';
-
 class EnvioStatusTimeline extends StatelessWidget {
   final String currentStatus;
   final List<Map<String, dynamic>>? statusHistory;
 
   const EnvioStatusTimeline({
-    Key? key,
+    super.key,
     required this.currentStatus,
     this.statusHistory,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
     final statuses = [
       {'key': 'pendiente', 'title': 'Pendiente', 'description': 'Envío creado'},
-      {'key': 'asignado', 'title': 'Asignado', 'description': 'Conductor asignado'},
-      {'key': 'en_camino_recogida', 'title': 'En camino', 'description': 'Yendo a recoger'},
-      {'key': 'recogido', 'title': 'Recogido', 'description': 'Paquete recogido'},
+      //{'key': 'asignado', 'title': 'Asignado', 'description': 'Conductor asignado'},
       {'key': 'en_transito', 'title': 'En tránsito', 'description': 'Camino al destino'},
       {'key': 'entregado', 'title': 'Entregado', 'description': 'Paquete entregado'},
     ];
@@ -55,7 +51,7 @@ class EnvioStatusTimeline extends StatelessWidget {
               isLast: isLast,
               timestamp: _getTimestampForStatus(status['key']),
             );
-          }).toList(),
+          }),
         ],
       ),
     );

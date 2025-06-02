@@ -9,6 +9,8 @@ import '../core/services/test_service.dart';
 /// 2. Intenta conectarse al backend usando TestService
 /// 3. Muestra el resultado de la conexión (éxito o error)
 class TestConnectionScreen extends StatefulWidget {
+  const TestConnectionScreen({super.key});
+
   @override
   _TestConnectionScreenState createState() => _TestConnectionScreenState();
 }

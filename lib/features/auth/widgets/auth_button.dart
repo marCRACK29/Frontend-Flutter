@@ -9,14 +9,14 @@ class AuthButton extends StatelessWidget {
   final IconData? icon;
 
   const AuthButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.isLoading = false,
     this.backgroundColor,
     this.textColor,
     this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -91,14 +91,14 @@ class AuthOutlineButton extends StatelessWidget {
   final IconData? icon;
 
   const AuthOutlineButton({
-    Key? key,
+    super.key,
     required this.text,
     required this.onPressed,
     this.isLoading = false,
     this.borderColor,
     this.textColor,
     this.icon,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

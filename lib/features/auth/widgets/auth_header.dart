@@ -4,8 +4,7 @@ class AuthHeader extends StatelessWidget {
   final String title;
   final String subtitle;
 
-  const AuthHeader({Key? key, required this.title, required this.subtitle})
-    : super(key: key);
+  const AuthHeader({super.key, required this.title, required this.subtitle});
 
   @override
   Widget build(BuildContext context) {
@@ -36,14 +35,14 @@ class AuthHeaderWithBackground extends StatelessWidget {
   final Color? textColor;
 
   const AuthHeaderWithBackground({
-    Key? key,
+    super.key,
     required this.title,
     required this.subtitle,
     this.logoPath,
     this.logoSize = 80,
     this.backgroundColor,
     this.textColor,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

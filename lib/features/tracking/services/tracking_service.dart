@@ -6,7 +6,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 
 class TrackingService extends ChangeNotifier {
   IO.Socket? _socket;
-  Location _location = Location();
+  final Location _location = Location();
   StreamSubscription<LocationData>? _locationSubscription;
 
   // Estado del tracking

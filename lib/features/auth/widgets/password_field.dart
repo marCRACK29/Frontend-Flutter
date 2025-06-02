@@ -9,14 +9,14 @@ class PasswordField extends StatefulWidget {
   final VoidCallback? onFieldSubmitted;
 
   const PasswordField({
-    Key? key,
+    super.key,
     required this.controller,
     required this.labelText,
     required this.hintText,
     this.validator,
     this.textInputAction = TextInputAction.done,
     this.onFieldSubmitted,
-  }) : super(key: key);
+  });
 
   @override
   State<PasswordField> createState() => _PasswordFieldState();

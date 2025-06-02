@@ -13,11 +13,11 @@ class TrackingScreen extends StatefulWidget {
   final String userId;
 
   const TrackingScreen({
-    Key? key,
+    super.key,
     required this.envioId,
     required this.userType,
     required this.userId,
-  }) : super(key: key);
+  });
 
   @override
   State<TrackingScreen> createState() => _TrackingScreenState();
@@ -25,8 +25,8 @@ class TrackingScreen extends StatefulWidget {
 
 class _TrackingScreenState extends State<TrackingScreen> {
   final MapController _mapController = MapController();
-  List<Marker> _markers = [];
-  List<Polyline> _polylines = [];
+  final List<Marker> _markers = [];
+  final List<Polyline> _polylines = [];
   final NominatimOsrmService _locationService = NominatimOsrmService();
 
   // Cache para coordenadas de direcciones
@@ -363,10 +363,13 @@ class _TrackingScreenState extends State<TrackingScreen> {
               ),
               if (status != null)
                 EnvioStatusTimeline(
-                  currentStatus: status['estado'] ?? 'pendiente',
+                  // Asegurar que el estado se pase correctamente
+                  currentStatus: status['estado']?.toString().toLowerCase() ?? 
+                                status['status']?.toString().toLowerCase() ?? 
+                                'pendiente',
                   statusHistory: status['historial_estados'],
                 ),
-            ],
+              ],
           );
         },
       ),
@@ -635,18 +638,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
     switch (status) {
       case 'pendiente':
         return Icons.pending;
-      case 'asignado':
-        return Icons.assignment;
-      case 'en_camino_recogida':
-        return Icons.directions_car;
-      case 'recogido':
-        return Icons.check_circle;
       case 'en_transito':
         return Icons.local_shipping;
       case 'entregado':
         return Icons.done_all;
-      case 'cancelado':
-        return Icons.cancel;
       default:
         return Icons.help;
     }
@@ -656,18 +651,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
     switch (status) {
       case 'pendiente':
         return Colors.orange;
-      case 'asignado':
-        return Colors.blue;
-      case 'en_camino_recogida':
-        return Colors.purple;
-      case 'recogido':
-        return Colors.teal;
       case 'en_transito':
         return Colors.indigo;
       case 'entregado':
         return Colors.green;
-      case 'cancelado':
-        return Colors.red;
       default:
         return Colors.grey;
     }
@@ -677,18 +664,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
     switch (status) {
       case 'pendiente':
         return 'Pendiente';
-      case 'asignado':
-        return 'Asignado';
-      case 'en_camino_recogida':
-        return 'En camino a recoger';
-      case 'recogido':
-        return 'Recogido';
       case 'en_transito':
         return 'En tránsito';
       case 'entregado':
         return 'Entregado';
-      case 'cancelado':
-        return 'Cancelado';
       default:
         return 'Estado desconocido';
     }
