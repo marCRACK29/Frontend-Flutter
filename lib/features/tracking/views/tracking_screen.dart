@@ -32,10 +32,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
   // Cache para coordenadas de direcciones
   final Map<String, LatLng> _addressCache = {};
   bool _isLoadingRoute = false;
+  bool _isMapReady =
+      false; // Nueva variable para controlar cuando el mapa está listo
   LatLng _currentCenter = const LatLng(
     -36.8485,
     -73.0524,
   ); // Concepción por defecto
+
+  // Variable para controlar la última actualización procesada
+  Map<String, dynamic>? _lastProcessedStatus;
 
   @override
   void initState() {
@@ -143,7 +148,7 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
   /// Ajusta la vista del mapa para mostrar todos los puntos de la ruta
   void _fitRouteInView(List<LatLng> points) {
-    if (points.isEmpty) return;
+    if (points.isEmpty || !_isMapReady) return;
 
     double minLat = points.first.latitude;
     double maxLat = points.first.latitude;
@@ -165,15 +170,40 @@ class _TrackingScreenState extends State<TrackingScreen> {
   }
 
   Future<void> _updateMarkers(TrackingService trackingService) async {
-    _markers.clear();
-
     final status = trackingService.currentEnvioStatus;
 
-    if (status == null) return; // los marcadores se crean solo si status no es null
+    if (status == null) {
+      print('❌ Status es null - no se pueden crear marcadores');
+      return;
+    }
+      // NUEVO: Verificación más específica para coordenadas
+    bool coordinatesChanged = false;
+    if (_lastProcessedStatus != null) {
+      final oldLat = _lastProcessedStatus!['latitude'];
+      final oldLng = _lastProcessedStatus!['longitude'];
+      final newLat = status['latitude'];
+      final newLng = status['longitude'];
+      
+      coordinatesChanged = oldLat != newLat || oldLng != newLng;
+    }
 
+  // Solo saltar si NADA ha cambiado, incluyendo coordenadas
+    if (_lastProcessedStatus != null && 
+        _lastProcessedStatus.toString() == status.toString() && 
+        !coordinatesChanged) {
+      print('🔄 Status no ha cambiado completamente, saltando actualización');
+      return;
+    }
+
+    _lastProcessedStatus = Map<String, dynamic>.from(status);
+
+    print('📍 Actualizando marcadores con status: $status');
     print('Origen: ${status['direccion_origen']}');
     print('Destino: ${status['direccion_destino']}');
     print('Latitud: ${status['latitude']}, Longitud: ${status['longitude']}');
+    print('Estado: ${status['estado']} (ID: ${status['estado_id']})');
+
+    _markers.clear(); // Limpiar marcadores existentes
 
     LatLng? conductorPosition;
     LatLng? origenPosition;
@@ -181,42 +211,68 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
     // Marcador del conductor (posición actual)
     if (status['latitude'] != null && status['longitude'] != null) {
-      conductorPosition = LatLng(
-        double.parse(status['latitude'].toString()),
-        double.parse(status['longitude'].toString()),
-      );
+      try {
+        conductorPosition = LatLng(
+          double.parse(status['latitude'].toString()),
+          double.parse(status['longitude'].toString()),
+        );
 
-      _markers.add(
-        Marker(
-          point: conductorPosition,
-          width: 40,
-          height: 40,
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.blue,
-              shape: BoxShape.circle,
-              border: Border.all(color: Colors.white, width: 2),
-            ),
-            child: const Icon(
-              Icons.local_shipping,
-              color: Colors.white,
-              size: 20,
+        print('✅ Posición del conductor: $conductorPosition');
+
+        _markers.add(
+          Marker(
+            point: conductorPosition,
+            width: 50, // Aumentado el tamaño
+            height: 50, // Aumentado el tamaño
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 3),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    spreadRadius: 2,
+                    blurRadius: 5,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: const Icon(
+                Icons.local_shipping,
+                color: Colors.white,
+                size: 25, // Aumentado el tamaño del icono
+              ),
             ),
           ),
-        ),
-      );
-
-      // Actualizar centro del mapa si es la primera vez
-      _currentCenter = conductorPosition;
+        );
+              // NUEVO: Solo actualizar centro si las coordenadas realmente cambiaron
+        if (coordinatesChanged) {
+          _currentCenter = conductorPosition;
+          print('📍 Centro del mapa actualizado a: $_currentCenter');
+          
+          // NUEVO: Mover mapa inmediatamente si está listo
+          if (_isMapReady) {
+            _mapController.move(conductorPosition, 15.0);
+            print('📍 Mapa centrado en nueva posición del conductor');
+          }
+        }
+      } catch (e) {
+        print('❌ Error parseando coordenadas del conductor: $e');
+      }
+    } else {
+      print('❌ No hay coordenadas del conductor disponibles');
     }
 
     // Marcador de origen
     if (status['direccion_origen'] != null) {
+      print('🔍 Geocodificando origen: ${status['direccion_origen']}');
       origenPosition = await _getCoordinatesFromAddress(
         status['direccion_origen'],
       );
 
       if (origenPosition != null) {
+        print('✅ Posición del origen: $origenPosition');
         _markers.add(
           Marker(
             point: origenPosition,
@@ -227,6 +283,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 color: Colors.green,
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    spreadRadius: 1,
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
               ),
               child: const Icon(
                 Icons.radio_button_checked,
@@ -236,16 +300,20 @@ class _TrackingScreenState extends State<TrackingScreen> {
             ),
           ),
         );
+      } else {
+        print('❌ No se pudo geocodificar el origen');
       }
     }
 
     // Marcador de destino
     if (status['direccion_destino'] != null) {
+      print('🔍 Geocodificando destino: ${status['direccion_destino']}');
       destinoPosition = await _getCoordinatesFromAddress(
         status['direccion_destino'],
       );
 
       if (destinoPosition != null) {
+        print('✅ Posición del destino: $destinoPosition');
         _markers.add(
           Marker(
             point: destinoPosition,
@@ -256,6 +324,14 @@ class _TrackingScreenState extends State<TrackingScreen> {
                 color: Colors.red,
                 shape: BoxShape.circle,
                 border: Border.all(color: Colors.white, width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2),
+                    spreadRadius: 1,
+                    blurRadius: 3,
+                    offset: const Offset(0, 1),
+                  ),
+                ],
               ),
               child: const Icon(
                 Icons.location_on,
@@ -265,8 +341,12 @@ class _TrackingScreenState extends State<TrackingScreen> {
             ),
           ),
         );
+      } else {
+        print('❌ No se pudo geocodificar el destino');
       }
     }
+
+    print('📍 Total de marcadores creados: ${_markers.length}');
 
     // Calcular ruta según el estado del envío
     await _calculateRouteBasedOnStatus(
@@ -278,6 +358,12 @@ class _TrackingScreenState extends State<TrackingScreen> {
 
     if (mounted) {
       setState(() {});
+
+      // // Mover el mapa al conductor si existe y el mapa está listo
+      // if (conductorPosition != null && _isMapReady) {
+      //   _mapController.move(conductorPosition, 15.0);
+      //   print('📍 Mapa centrado en conductor: $conductorPosition');
+      // }
     }
   }
 
@@ -288,19 +374,28 @@ class _TrackingScreenState extends State<TrackingScreen> {
     LatLng? origenPos,
     LatLng? destinoPos,
   ) async {
-    switch (estado) {
+    switch (estado?.toLowerCase()) {
+      case 'en preparación':
+      case 'en preparacion':
       case 'asignado':
       case 'en_camino_recogida':
         // Ruta del conductor al origen
         if (conductorPos != null && origenPos != null) {
+          print('Calculando ruta: conductor -> origen');
           await _calculateRoute(conductorPos, origenPos);
+        } else {
+          print(
+            'No se puede calcular ruta - conductorPos: $conductorPos, origenPos: $origenPos',
+          );
         }
         break;
 
       case 'recogido':
       case 'en_transito':
+      case 'en transito':
         // Ruta del conductor al destino
         if (conductorPos != null && destinoPos != null) {
+          print('Calculando ruta: conductor -> destino');
           await _calculateRoute(conductorPos, destinoPos);
         }
         break;
@@ -308,11 +403,13 @@ class _TrackingScreenState extends State<TrackingScreen> {
       case 'entregado':
         // Mostrar ruta completa origen -> destino
         if (origenPos != null && destinoPos != null) {
+          print('Calculando ruta: origen -> destino');
           await _calculateRoute(origenPos, destinoPos);
         }
         break;
 
       default:
+        print('Estado no reconocido: "$estado" - limpiando rutas');
         // Para otros estados, limpiar rutas
         if (mounted) {
           setState(() {
@@ -331,6 +428,20 @@ class _TrackingScreenState extends State<TrackingScreen> {
         builder: (context, trackingService, child) {
           final status = trackingService.currentEnvioStatus;
 
+          // Debug temporal
+          print('🔄 Consumer rebuild - Status: $status');
+          if (status != null) {
+            print(
+              '📍 Coordenadas en Consumer: ${status['latitude']}, ${status['longitude']}',
+            );
+
+            // ¡AQUÍ ESTÁ EL FIX PRINCIPAL!
+            // Actualizar marcadores cuando hay cambios en el status y el mapa está listo
+            if (_isMapReady) {
+              Future.microtask(() => _updateMarkers(trackingService));
+            }
+          }
+
           return Column(
             children: [
               Expanded(
@@ -342,7 +453,10 @@ class _TrackingScreenState extends State<TrackingScreen> {
                         initialCenter: _currentCenter,
                         initialZoom: 13.0,
                         onMapReady: () {
-                          _updateMarkers(trackingService);
+                          print('🗺️ Mapa listo');
+                          _isMapReady = true;
+                          // Actualizar marcadores cuando el mapa esté listo
+                          Future.microtask(() => _updateMarkers(trackingService));
                         },
                       ),
                       children: [
@@ -358,18 +472,44 @@ class _TrackingScreenState extends State<TrackingScreen> {
                     ),
                     if (_isLoadingRoute)
                       const Center(child: CircularProgressIndicator()),
+
+                    // Botón de debug para forzar actualización
+                    Positioned(
+                      top: 10,
+                      right: 10,
+                      child: Column(
+                        children: [
+                          FloatingActionButton(
+                            mini: true,
+                            onPressed: () {
+                              print('🔄 Forzando actualización manual');
+                              _lastProcessedStatus = null; // Forzar actualización
+                              _updateMarkers(trackingService);
+                            },
+                            child: const Icon(Icons.refresh),
+                          ),
+                          const SizedBox(height: 8),
+                          FloatingActionButton(
+                            mini: true,
+                            onPressed: _centerMapOnCurrentLocation,
+                            child: const Icon(Icons.my_location),
+                          ),
+                        ],
+                      ),
+                    ),
                   ],
                 ),
               ),
               if (status != null)
                 EnvioStatusTimeline(
                   // Asegurar que el estado se pase correctamente
-                  currentStatus: status['estado']?.toString().toLowerCase() ?? 
-                                status['status']?.toString().toLowerCase() ?? 
-                                'pendiente',
+                  currentStatus:
+                      status['estado']?.toString().toLowerCase() ??
+                      status['status']?.toString().toLowerCase() ??
+                      'pendiente',
                   statusHistory: status['historial_estados'],
                 ),
-              ],
+            ],
           );
         },
       ),

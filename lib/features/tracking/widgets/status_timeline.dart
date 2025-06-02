@@ -13,8 +13,7 @@ class EnvioStatusTimeline extends StatelessWidget {
   Widget build(BuildContext context) {
     final statuses = [
       {'key': 'pendiente', 'title': 'Pendiente', 'description': 'Envío creado'},
-      //{'key': 'asignado', 'title': 'Asignado', 'description': 'Conductor asignado'},
-      {'key': 'en_transito', 'title': 'En tránsito', 'description': 'Camino al destino'},
+      {'key': 'en transito', 'title': 'En tránsito', 'description': 'Camino al destino'},
       {'key': 'entregado', 'title': 'Entregado', 'description': 'Paquete entregado'},
     ];
 
