@@ -1,19 +1,14 @@
 import 'package:flutter/material.dart';
-import 'package:frontend/features/maps/providers/map_provider.dart';
-import 'package:frontend/features/maps/views/openstreetmap_view.dart';
-import 'package:provider/provider.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:frontend/shared/test_connection_screen.dart';
+import 'package:provider/provider.dart';
+import 'features/delivery/providers/delivery_provider.dart';
+import 'features/delivery/views/delivery_list_view.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await dotenv.load(); // carga las variables de entorno
-  runApp(
-    MultiProvider(
-      providers: [ChangeNotifierProvider(create: (_) => MapProvider())],
-      child: const MyApp(),
-    ),
-  );
+  await dotenv.load(fileName: ".env");
+
+  runApp(const MyApp());
 }
 
 class MyApp extends StatelessWidget {
@@ -21,43 +16,27 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      initialRoute: '/',
-      routes: {
-        '/': (context) => const HomeScreen(), // Nuevo menú de navegación
-        '/map': (context) => const OpenStreetMapView(), // Pantalla del mapa
-        '/test': (context) => TestConnectionScreen(), // Pantalla para el test de conexión
-      },
-    );
-  }
-}
-
-class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Menú de Navegación')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/map');
-              },
-              child: const Text('Ir al Mapa'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/test');
-              },
-              child: const Text('Probar conexión Backend'),
-            ),
-          ],
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => DeliveryProvider()),
+      ],
+      child: MaterialApp(
+        title: 'Gestión de Entregas',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: Colors.indigo,
+            brightness: Brightness.light,
+          ),
+          appBarTheme: const AppBarTheme(
+            centerTitle: true,
+            backgroundColor: Colors.indigo,
+            foregroundColor: Colors.white,
+            elevation: 2,
+          ),
         ),
+        home: const DeliveryListView(),
       ),
     );
   }
