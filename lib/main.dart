@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/features/maps/providers/map_provider.dart';
 import 'package:frontend/features/maps/views/openstreetmap_view.dart';
 import 'package:provider/provider.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:frontend/shared/test_connection_screen.dart';
+import 'features/delivery/providers/delivery_provider.dart';
+import 'features/delivery/views/delivery_list_view.dart';
 import 'package:frontend/features/tracking/services/tracking_service.dart';
 import 'features/tracking/views/tracking_screen.dart';
 
-void main() async {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(); // carga las variables de entorno
   runApp(

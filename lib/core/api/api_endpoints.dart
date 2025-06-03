@@ -26,6 +26,8 @@ class ApiEndpoints {
   static const String osmReverse = '/reverse';
   static const String osmDetails = '/details';
 
+  static final String enviosConductor = '$baseUrl/api/envios/conductor';
+
   // Helper methods
   static String getUserRoutes(String userId) => '/maps/routes/user/$userId';
   static String getRouteById(String routeId) => '/maps/routes/$routeId';
