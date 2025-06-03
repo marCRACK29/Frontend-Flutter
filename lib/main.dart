@@ -36,7 +36,7 @@ class MyApp extends StatelessWidget {
             elevation: 2,
           ),
         ),
-        home: const DeliveryListView(),
+        home: DeliveryListView(),
       ),
     );
   }
