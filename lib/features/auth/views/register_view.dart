@@ -6,7 +6,7 @@ import '../widgets/auth_button.dart';
 import '../widgets/password_field.dart';
 
 class RegisterView extends StatefulWidget {
-  const RegisterView({Key? key}) : super(key: key);
+  const RegisterView({super.key});
 
   @override
   State<RegisterView> createState() => _RegisterViewState();

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
 import '../models/envio_model.dart';
 import '../services/delivery_service.dart';
 import '../../maps/views/openstreetmap_view.dart';
