@@ -21,7 +21,11 @@ class _DeliveryListViewState extends State<DeliveryListView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Envíos Asignados')),
+      appBar: AppBar(
+              title: Text('Envíos Asignados'),
+              backgroundColor: Colors.indigo,
+              foregroundColor: Colors.white, // Para que el texto salga blanco
+            ),
       body: FutureBuilder<List<EnvioModel>>(
         future: _deliveries,
         builder: (context, snapshot) {
