@@ -13,10 +13,26 @@ class HistorialEnviosView extends StatelessWidget {
         itemCount: envios.length,
         itemBuilder: (context, index) {
           final envio = envios[index];
-          return ListTile(
-            title: Text('Envío #${envio['id_envio']}'),
-            subtitle: Text(
-                'Estado: ${envio['estado_actual']} - Fecha: ${envio['fecha_ultimo_estado']}'),
+
+          // Asegurar que el estado_actual es un Map antes de acceder
+          final estado = envio['estado_actual'];
+          final estadoTexto = estado != null && estado is Map<String, dynamic>
+              ? estado['estado'] ?? 'Sin estado'
+              : 'Sin estado';
+
+          return Card(
+            margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            child: ListTile(
+              title: Text('Envío #${envio['id_envio']}'),
+              subtitle: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('Estado: $estadoTexto'),
+                  Text('Destinatario: ${envio['receptor_id']}'),
+                  Text('Dirección: ${envio['direccion_destino'] ?? 'No especificada'}'),
+                ],
+              ),
+            ),
           );
         },
       ),

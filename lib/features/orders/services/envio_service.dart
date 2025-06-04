@@ -21,25 +21,25 @@ class EnvioService {
   }
 
   Future<List<dynamic>> obtenerEnviosPorUsuario(String usuarioId) async {
-    final uri = Uri.parse(baseUrl).replace(
-      path: '/api/envios/mis',
-      queryParameters: {'usuario_id': usuarioId.trim()},
+    final response = await http.get(
+      Uri.parse('$baseUrl/api/envios/mis?usuario_id=$usuarioId'),
+      headers: {
+        'Content-Type': 'application/json',
+        'ngrok-skip-browser-warning': 'true',
+      },
     );
-    print('Consultando URL: $uri');
-    final response = await http.get(uri, headers: {
-      'Content-Type': 'application/json',
-    });
 
     if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else if (response.statusCode == 400) {
-      throw Exception('Solicitud incorrecta: ${response.body}');
-    } else if (response.statusCode == 500) {
-      throw Exception('Error del servidor: ${response.body}');
+      final data = jsonDecode(response.body);
+      print("Tipo de respuesta: ${data.runtimeType}");
+
+      if (data is List) {
+        return data;
+      } else {
+        throw Exception('Respuesta inesperada: se esperaba una lista de envíos.');
+      }
     } else {
-      throw Exception('Error inesperado: ${response.body}');
+      throw Exception('Error: ${response.statusCode} - ${response.body}');
     }
   }
-
-
 }

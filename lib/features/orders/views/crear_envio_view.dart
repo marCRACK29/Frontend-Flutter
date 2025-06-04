@@ -11,31 +11,31 @@ class CrearEnvioScreen extends StatefulWidget {
 
 class _CrearEnvioScreenState extends State<CrearEnvioScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _remitenteController = TextEditingController();
-  final _conductorController = TextEditingController();
-  final _rutaController = TextEditingController();
-  final _pesoController = TextEditingController();
+  final _receptorController = TextEditingController();
+  final _origenController = TextEditingController();
+  final _destinoController = TextEditingController();
 
   final EnvioService envioService = EnvioService();
+
+  // Valores fijos
+  final String remitenteId = "21.595.452-3";
+  final String conductorId = "15.123.102-4";
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
       try {
         final envio = Envio(
-          remitenteId: _remitenteController.text,
-          rutaId: int.parse(_rutaController.text),
-          conductorId: _conductorController.text,
-          paquetes: [
-            Paquete(
-              peso: int.parse(_pesoController.text),
-            )
-          ],
+          remitenteId: remitenteId,
+          receptorId: _receptorController.text,
+          conductorId: conductorId,
+          direccionOrigen: _origenController.text,
+          direccionDestino: _destinoController.text,
         );
 
         final respuesta = await envioService.crearEnvio(envio);
         print('Respuesta completa: $respuesta');
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Envío creado: ID ${respuesta["envio"]["id"]}')),
+          SnackBar(content: Text('Envío creado: ID ${respuesta["envío"]["id"]}')),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -55,12 +55,26 @@ class _CrearEnvioScreenState extends State<CrearEnvioScreen> {
           key: _formKey,
           child: Column(
             children: [
-              TextFormField(controller: _remitenteController, decoration: const InputDecoration(labelText: "Remitente ID")),
-              TextFormField(controller: _conductorController, decoration: const InputDecoration(labelText: "Conductor ID")),
-              TextFormField(controller: _rutaController, decoration: const InputDecoration(labelText: "Ruta ID")),
-              TextFormField(controller: _pesoController, decoration: const InputDecoration(labelText: "Peso del paquete")),
+              TextFormField(
+                controller: _receptorController,
+                decoration: const InputDecoration(labelText: "Receptor ID"),
+                validator: (value) => value == null || value.isEmpty ? "Campo requerido" : null,
+              ),
+              TextFormField(
+                controller: _origenController,
+                decoration: const InputDecoration(labelText: "Dirección de Origen"),
+                validator: (value) => value == null || value.isEmpty ? "Campo requerido" : null,
+              ),
+              TextFormField(
+                controller: _destinoController,
+                decoration: const InputDecoration(labelText: "Dirección de Destino"),
+                validator: (value) => value == null || value.isEmpty ? "Campo requerido" : null,
+              ),
               const SizedBox(height: 20),
-              ElevatedButton(onPressed: _submit, child: const Text("Enviar")),
+              ElevatedButton(
+                onPressed: _submit,
+                child: const Text("Enviar"),
+              ),
             ],
           ),
         ),

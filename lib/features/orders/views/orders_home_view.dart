@@ -16,9 +16,13 @@ class _OrdersHomeViewState extends State<OrdersHomeView> {
 
   Future<void> _verHistorial() async {
   try {
-    String usuarioId = '15.123.123-4'; // Reemplaza con el usuario logueado
+    String usuarioId = '21.595.452-3'; // Reemplaza con el usuario logueado
     final envios = await envioService.obtenerEnviosPorUsuario(usuarioId);
 
+    print("Envios recibidos:");
+    for (var envio in envios) {
+      print(envio);
+    }
     if (!mounted) return; // Verifica que el widget esté montado
 
     Navigator.push(
