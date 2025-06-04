@@ -88,25 +88,4 @@ class _DeliveryDetailViewState extends State<DeliveryDetailView> {
       ),
     );
   }
-<<<<<<< HEAD
-
-  // Método auxiliar para obtener el color según el estado
-  Color _getEstadoColor(String? estado) {
-    switch (estado?.toLowerCase()) {
-      case 'pendiente':
-        return Colors.orange;
-      case 'en_transito':
-      case 'en tránsito':
-        return Colors.blue;
-      case 'entregado':
-        return Colors.green;
-      case 'cancelado':
-        return Colors.red;
-      default:
-        return Colors.grey;
-    }
-  }
 }
-=======
-}
->>>>>>> origin/delivery

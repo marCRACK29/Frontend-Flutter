@@ -1,15 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:frontend/features/delivery/views/delivery_list_view.dart';
 import 'package:frontend/features/maps/providers/map_provider.dart';
 import 'package:frontend/features/maps/views/openstreetmap_view.dart';
-import 'package:frontend/features/orders/views/orders_home_view.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/shared/test_connection_screen.dart';
-import 'features/delivery/providers/delivery_provider.dart';
 import 'features/delivery/views/delivery_list_view.dart';
 import 'package:frontend/features/tracking/services/tracking_service.dart';
 import 'features/tracking/views/tracking_screen.dart';
+import 'package:frontend/features/orders/views/orders_home_view.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -19,7 +17,6 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => MapProvider()),
         ChangeNotifierProvider(create: (_) => TrackingService()),
-        ChangeNotifierProvider(create: (_) => DeliveryProvider()),
       ],
       child: const MyApp(),
     ),
@@ -46,7 +43,6 @@ class MyApp extends StatelessWidget {
             ),
         '/delivery': (context) => DeliveryListView(),
         '/orders': (context) => const OrdersHomeView(), // Pantalla para el menu de ordenes
-        
       },
     );
   }
@@ -74,6 +70,24 @@ class HomeScreen extends StatelessWidget {
                 Navigator.pushReplacementNamed(context, '/test');
               },
               child: const Text('Probar conexión Backend'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/tracking');
+              },
+              child: const Text('Monitoreo de envíos'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/delivery');
+              },
+              child: const Text('Gestión de Entregas'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushNamed(context, '/orders');
+              },
+              child: const Text('Ordenes'),
             ),
           ],
         ),
