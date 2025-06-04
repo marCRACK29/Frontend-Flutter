@@ -41,24 +41,15 @@ class _TrackingScreenState extends State<TrackingScreen> {
   @override
   void initState() {
     super.initState();
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final trackingService = Provider.of<TrackingService>(
-        context,
-        listen: false,
-      );
-      trackingService.initialize().then((_) {
-        trackingService.joinTracking(
-          widget.envioId,
-          widget.userType,
-          widget.userId,
-        );
-
-        // Si es conductor, iniciar tracking de ubicación
-        if (widget.userType == 'conductor') {
-          trackingService.startLocationTracking(widget.userId);
-        }
-      });
-    });
+    final trackingService = Provider.of<TrackingService>(
+      context,
+      listen: false,
+    );
+    trackingService.joinTracking(
+      widget.envioId,
+      widget.userType,
+      widget.userId,
+    );
   }
 
   @override
@@ -68,9 +59,6 @@ class _TrackingScreenState extends State<TrackingScreen> {
       listen: false,
     );
     trackingService.leaveTracking();
-    if (widget.userType == 'conductor') {
-      trackingService.stopLocationTracking();
-    }
     super.dispose();
   }
 
@@ -337,41 +325,31 @@ class _TrackingScreenState extends State<TrackingScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
+          final direccionDestino = status['direccion_destino'];
+          debugPrint('📍 Dirección de destino: $direccionDestino');
+
           return Column(
             children: [
               Expanded(
-                child: Stack(
+                child: TrackingMapWidget(
+                  destinationAddress: direccionDestino ?? '',
+                  currentLat: status['latitude'],
+                  currentLng: status['longitude'],
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    FlutterMap(
-                      mapController: _mapController,
-                      options: MapOptions(
-                        initialCenter: _currentCenter,
-                        initialZoom: 13.0,
-                        onMapReady: () {
-                          _updateMarkers(trackingService);
-                        },
-                      ),
-                      children: [
-                        TileLayer(
-                          urlTemplate:
-                              'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-                          userAgentPackageName: 'com.example.app',
-                          tileProvider: CancellableNetworkTileProvider(),
-                        ),
-                        MarkerLayer(markers: _markers),
-                        PolylineLayer(polylines: _polylines),
-                      ],
-                    ),
-                    if (_isLoadingRoute)
-                      const Center(child: CircularProgressIndicator()),
+                    Text('Estado: ${status['estado']}'),
+                    if (status['direccion_origen'] != null)
+                      Text('Origen: ${status['direccion_origen']}'),
+                    if (direccionDestino != null)
+                      Text('Destino: $direccionDestino'),
                   ],
                 ),
               ),
-              if (status != null)
-                EnvioStatusTimeline(
-                  currentStatus: status['estado'] ?? 'pendiente',
-                  statusHistory: status['historial_estados'],
-                ),
             ],
           );
         },

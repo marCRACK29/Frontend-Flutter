@@ -46,14 +46,22 @@ class _TrackingMapWidgetState extends State<TrackingMapWidget> {
       }
 
       // Obtener coordenadas del destino
-      final destinationCoords =
-          await GeocodingService.getCoordinatesFromAddress(
-            widget.destinationAddress,
-          );
-      _destinationPosition = LatLng(
-        destinationCoords['latitude']!,
-        destinationCoords['longitude']!,
-      );
+      if (widget.destinationAddress.isNotEmpty) {
+        debugPrint(
+          '🎯 Obteniendo coordenadas para: ${widget.destinationAddress}',
+        );
+        final destinationCoords =
+            await GeocodingService.getCoordinatesFromAddress(
+              widget.destinationAddress,
+            );
+        _destinationPosition = LatLng(
+          destinationCoords['latitude']!,
+          destinationCoords['longitude']!,
+        );
+      } else {
+        debugPrint('⚠️ No hay dirección de destino');
+        throw Exception('No se proporcionó una dirección de destino');
+      }
 
       if (_currentPosition != null && _destinationPosition != null) {
         await _calculateRoute();
@@ -63,7 +71,7 @@ class _TrackingMapWidgetState extends State<TrackingMapWidget> {
         _isLoading = false;
       });
     } catch (e) {
-      debugPrint('Error inicializando mapa: $e');
+      debugPrint('❌ Error inicializando mapa: $e');
       setState(() {
         _isLoading = false;
       });
@@ -128,8 +136,23 @@ class _TrackingMapWidgetState extends State<TrackingMapWidget> {
       return const Center(child: CircularProgressIndicator());
     }
 
-    if (_currentPosition == null || _destinationPosition == null) {
-      return const Center(child: Text('No se pudo cargar el mapa'));
+    if (_currentPosition == null) {
+      return const Center(
+        child: Text('No se pudo obtener tu ubicación actual'),
+      );
+    }
+
+    if (_destinationPosition == null) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('No se pudo obtener la ubicación del destino'),
+            const SizedBox(height: 16),
+            Text('Dirección: ${widget.destinationAddress}'),
+          ],
+        ),
+      );
     }
 
     return FlutterMap(

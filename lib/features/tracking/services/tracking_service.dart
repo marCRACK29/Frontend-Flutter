@@ -3,6 +3,8 @@ import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:location/location.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 
 class TrackingService extends ChangeNotifier {
   IO.Socket? _socket;
@@ -267,6 +269,45 @@ class TrackingService extends ChangeNotifier {
 
     _currentEnvioId = envioId;
 
+    // Obtener información del envío
+    try {
+      final response = await http.get(
+        Uri.parse('${dotenv.env['API_URL']}/api/envio/$envioId'),
+      );
+
+      if (response.statusCode == 200) {
+        final envioData = json.decode(response.body);
+        debugPrint('📦 Información del envío obtenida:');
+        debugPrint('   Origen: ${envioData['direccion_origen']}');
+        debugPrint('   Destino: ${envioData['direccion_destino']}');
+
+        _currentEnvioStatus = {
+          'estado': envioData['estado_actual']['estado'] ?? 'pendiente',
+          'timestamp': DateTime.now().toIso8601String(),
+          'direccion_origen': envioData['direccion_origen'],
+          'direccion_destino': envioData['direccion_destino'],
+        };
+      } else {
+        debugPrint(
+          '⚠️ Error obteniendo información del envío: ${response.statusCode}',
+        );
+        _currentEnvioStatus = {
+          'estado': 'pendiente',
+          'timestamp': DateTime.now().toIso8601String(),
+          'direccion_origen': null,
+          'direccion_destino': null,
+        };
+      }
+    } catch (e) {
+      debugPrint('❌ Error obteniendo información del envío: $e');
+      _currentEnvioStatus = {
+        'estado': 'pendiente',
+        'timestamp': DateTime.now().toIso8601String(),
+        'direccion_origen': null,
+        'direccion_destino': null,
+      };
+    }
+
     // Esperar a que el socket esté conectado
     if (_socket == null || !_socket!.connected) {
       debugPrint('⏳ Esperando conexión de socket...');
@@ -279,14 +320,6 @@ class TrackingService extends ChangeNotifier {
       'user_type': userType,
       'user_id': userId,
     });
-
-    // Inicializar estado del envío
-    _currentEnvioStatus = {
-      'estado': 'pendiente',
-      'timestamp': DateTime.now().toIso8601String(),
-      'direccion_origen': null,
-      'direccion_destino': null,
-    };
 
     if (userType == 'conductor') {
       debugPrint('🚗 Usuario es conductor, obteniendo ubicación inicial...');
