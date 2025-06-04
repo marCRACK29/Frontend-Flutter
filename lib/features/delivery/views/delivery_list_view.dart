@@ -18,7 +18,9 @@ class _DeliveryListViewState extends State<DeliveryListView> {
     // Esperar a que el widget se construya antes de llamar al provider
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final provider = Provider.of<DeliveryProvider>(context, listen: false);
-      provider.cargarEnvios('15.123.102-4'); // Puedes cambiar '1' por el ID real del conductor
+      provider.cargarEnvios(
+        '15.123.102-4',
+      ); // Puedes cambiar '1' por el ID real del conductor
     });
   }
 
@@ -31,9 +33,12 @@ class _DeliveryListViewState extends State<DeliveryListView> {
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: () {
-              Provider.of<DeliveryProvider>(context, listen: false).cargarEnvios('15.123.123-5');
+              Provider.of<DeliveryProvider>(
+                context,
+                listen: false,
+              ).cargarEnvios('15.123.123-5');
             },
-          )
+          ),
         ],
       ),
       body: Consumer<DeliveryProvider>(
@@ -61,14 +66,14 @@ class _DeliveryListViewState extends State<DeliveryListView> {
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: ListTile(
-                  title: Text(envio.direccion),
+                  title: Text(envio.direccionDestino),
                   subtitle: Text('Estado: ${envio.estado}'),
                   trailing: const Icon(Icons.chevron_right),
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (_) => DeliveryDetailView(envio: envio),
+                        builder: (_) => DeliveryDetailView(envioId: envio.id),
                       ),
                     );
                   },

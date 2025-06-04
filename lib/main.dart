@@ -3,6 +3,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/features/maps/providers/map_provider.dart';
 import 'package:frontend/features/maps/views/openstreetmap_view.dart';
 import 'package:provider/provider.dart';
+import 'package:frontend/shared/test_connection_screen.dart';
 import 'features/delivery/providers/delivery_provider.dart';
 import 'features/delivery/views/delivery_list_view.dart';
 import 'package:frontend/features/tracking/services/tracking_service.dart';
@@ -16,6 +17,7 @@ Future<void> main() async {
       providers: [
         ChangeNotifierProvider(create: (_) => MapProvider()),
         ChangeNotifierProvider(create: (_) => TrackingService()),
+        ChangeNotifierProvider(create: (_) => DeliveryProvider()),
       ],
       child: const MyApp(),
     ),
@@ -34,16 +36,17 @@ class MyApp extends StatelessWidget {
         '/': (context) => const HomeScreen(),
         '/map': (context) => const OpenStreetMapView(),
         '/test': (context) => TestConnectionScreen(),
-        '/tracking': (context) => const TrackingScreen(
-          envioId: 4,
-          userType: 'cliente',
-          userId: '21.595.452-3',
-        ),
+        '/tracking':
+            (context) => const TrackingScreen(
+              envioId: 4,
+              userType: 'cliente',
+              userId: '21.595.452-3',
+            ),
+        '/delivery': (context) => const DeliveryListView(),
       },
     );
   }
 }
-
 
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -73,6 +76,12 @@ class HomeScreen extends StatelessWidget {
                 Navigator.pushReplacementNamed(context, '/tracking');
               },
               child: const Text('Monitoreo de envíos'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/delivery');
+              },
+              child: const Text('Gestión de Entregas'),
             ),
           ],
         ),
