@@ -27,4 +27,8 @@ class EnvioModel {
       conductorId: json['conductor_id'],
     );
   }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> origin/delivery

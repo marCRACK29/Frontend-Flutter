@@ -26,11 +26,16 @@ class ApiEndpoints {
   static const String osmReverse = '/reverse';
   static const String osmDetails = '/details';
 
-  static final String enviosConductor = '$baseUrl/api/envios/conductor';
+  // Orders endpoints
+  static const String createEnvio = "/api/envios";
+  static const String misEnvios = "/api/envios/mis";
+  static String actualizarEstado(int id) => "/api/envios/$id/estado";
+  static String cancelarEnvio(int id) => "/api/envios/$id";
+
+  // Delivery endpoints
   static String actualizarEstadoEnvio(int envioId) => '$baseUrl/api/envios/$envioId/estado';
-
-
-
+  static String enviosConductor(String conductorId) => '$baseUrl/api/envios/conductor?conductor_id=$conductorId';
+  
   // Helper methods
   static String getUserRoutes(String userId) => '/maps/routes/user/$userId';
   static String getRouteById(String routeId) => '/maps/routes/$routeId';

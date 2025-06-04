@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:frontend/features/delivery/views/delivery_list_view.dart';
 import 'package:frontend/features/maps/providers/map_provider.dart';
 import 'package:frontend/features/maps/views/openstreetmap_view.dart';
+import 'package:frontend/features/orders/views/orders_home_view.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/shared/test_connection_screen.dart';
 import 'features/delivery/providers/delivery_provider.dart';
@@ -43,6 +45,8 @@ class MyApp extends StatelessWidget {
               userId: '21.595.452-3',
             ),
         '/delivery': (context) => DeliveryListView(),
+        '/orders': (context) => const OrdersHomeView(), // Pantalla para el menu de ordenes
+        
       },
     );
   }
@@ -70,18 +74,6 @@ class HomeScreen extends StatelessWidget {
                 Navigator.pushReplacementNamed(context, '/test');
               },
               child: const Text('Probar conexión Backend'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/tracking');
-              },
-              child: const Text('Monitoreo de envíos'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/delivery');
-              },
-              child: const Text('Gestión de Entregas'),
             ),
           ],
         ),

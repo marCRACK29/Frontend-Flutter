@@ -88,6 +88,7 @@ class _DeliveryDetailViewState extends State<DeliveryDetailView> {
       ),
     );
   }
+<<<<<<< HEAD
 
   // Método auxiliar para obtener el color según el estado
   Color _getEstadoColor(String? estado) {
@@ -106,3 +107,6 @@ class _DeliveryDetailViewState extends State<DeliveryDetailView> {
     }
   }
 }
+=======
+}
+>>>>>>> origin/delivery
