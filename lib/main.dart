@@ -8,6 +8,7 @@ import 'features/delivery/views/delivery_list_view.dart';
 import 'package:frontend/features/tracking/services/tracking_service.dart';
 import 'features/tracking/views/tracking_screen.dart';
 import 'package:frontend/features/orders/views/orders_home_view.dart';
+import 'package:frontend/features/tracking/widgets/map_widget.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -37,12 +38,15 @@ class MyApp extends StatelessWidget {
         '/test': (context) => TestConnectionScreen(),
         '/tracking':
             (context) => const TrackingScreen(
-              envioId: 4,
-              userType: 'cliente',
-              userId: '21.595.452-3',
+              envioId: 1,
+              userType: 'conductor',
+              userId: '15.123.102-4',
             ),
+        '/tracking-map':
+            (context) =>
+                const TrackingMapWidget(destinationAddress: 'Santiago, Chile'),
         '/delivery': (context) => DeliveryListView(),
-        '/orders': (context) => const OrdersHomeView(), // Pantalla para el menu de ordenes
+        '/orders': (context) => const OrdersHomeView(),
       },
     );
   }
@@ -76,6 +80,12 @@ class HomeScreen extends StatelessWidget {
                 Navigator.pushReplacementNamed(context, '/tracking');
               },
               child: const Text('Monitoreo de envíos'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pushReplacementNamed(context, '/tracking-map');
+              },
+              child: const Text('Mapa de Tracking'),
             ),
             ElevatedButton(
               onPressed: () {

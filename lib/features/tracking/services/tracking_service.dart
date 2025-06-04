@@ -20,7 +20,11 @@ class TrackingService extends ChangeNotifier {
   bool get isConnected => _isConnected;
   bool get isTracking => _isTracking;
   int? get currentEnvioId => _currentEnvioId;
-  Map<String, dynamic>? get currentEnvioStatus => _currentEnvioStatus;
+  Map<String, dynamic>? get currentEnvioStatus {
+    print('🔍 Getter currentEnvioStatus llamado - Valor: $_currentEnvioStatus');
+    return _currentEnvioStatus;
+  }
+
   LocationData? get currentLocation => _currentLocation;
 
   // URL del backend desde variables de entorno
@@ -44,66 +48,273 @@ class TrackingService extends ChangeNotifier {
 
   void _setupSocketListeners() {
     _socket!.on('connect', (_) {
-      print('Conectado al servidor de tracking');
+      debugPrint('✅ Conectado al servidor de tracking');
       _isConnected = true;
       notifyListeners();
     });
 
     _socket!.on('disconnect', (_) {
-      print('Desconectado del servidor');
+      debugPrint('❌ Desconectado del servidor');
       _isConnected = false;
       notifyListeners();
     });
 
     _socket!.on('connected', (data) {
-      print('Confirmación de conexión: ${data['message']}');
+      debugPrint('✅ Confirmación de conexión: ${data['message']}');
     });
 
     _socket!.on('joined_tracking', (data) {
-      print('Unido al tracking: ${data['message']}');
+      debugPrint('✅ Unido al tracking: ${data['message']}');
       _isTracking = true;
       notifyListeners();
     });
 
+    // Nuevo evento para actualización de ubicación del conductor
+    _socket!.on('conductor_location_update', (data) {
+      debugPrint('📍 Actualización de ubicación del conductor:');
+      debugPrint('   Data: $data');
+
+      try {
+        if (data is Map) {
+          // Actualizar el estado actual con la nueva ubicación
+          if (_currentEnvioStatus != null) {
+            _currentEnvioStatus = {
+              ..._currentEnvioStatus!,
+              'latitude': data['latitud'],
+              'longitude': data['longitud'],
+              'last_location_update': data['timestamp'],
+            };
+            debugPrint('✅ Ubicación actualizada:');
+            debugPrint('   Latitud: ${data['latitud']}');
+            debugPrint('   Longitud: ${data['longitud']}');
+            debugPrint('   Timestamp: ${data['timestamp']}');
+          } else {
+            debugPrint('⚠️ No hay estado de envío para actualizar');
+          }
+        } else {
+          debugPrint('❌ Data no es Map: $data');
+        }
+      } catch (e) {
+        debugPrint('❌ Error procesando actualización de ubicación: $e');
+      }
+
+      notifyListeners();
+    });
+
     _socket!.on('status_update', (data) {
-      print('Actualización de estado: $data');
-      _currentEnvioStatus = Map<String, dynamic>.from(data);
+      debugPrint('📝 Status update recibido:');
+      debugPrint('   Data: $data');
+
+      try {
+        if (data is Map) {
+          // Asegurar que las coordenadas estén en el formato correcto
+          if (data['latitude'] != null) {
+            data['latitude'] = _parseCoordinate(data['latitude']);
+          }
+          if (data['longitude'] != null) {
+            data['longitude'] = _parseCoordinate(data['longitude']);
+          }
+
+          // Combinar con el estado actual
+          _currentEnvioStatus = {
+            ..._currentEnvioStatus ?? {},
+            ...Map<String, dynamic>.from(data),
+            // Asegurar que las direcciones estén presentes
+            'direccion_origen':
+                data['direccion_origen'] ??
+                _currentEnvioStatus?['direccion_origen'],
+            'direccion_destino':
+                data['direccion_destino'] ??
+                _currentEnvioStatus?['direccion_destino'],
+          };
+
+          debugPrint('✅ Status actualizado:');
+          debugPrint('   Estado: ${_currentEnvioStatus!['estado']}');
+          debugPrint('   Latitud: ${_currentEnvioStatus!['latitude']}');
+          debugPrint('   Longitud: ${_currentEnvioStatus!['longitude']}');
+          debugPrint('   Origen: ${_currentEnvioStatus!['direccion_origen']}');
+          debugPrint(
+            '   Destino: ${_currentEnvioStatus!['direccion_destino']}',
+          );
+        } else {
+          debugPrint('❌ Data no es Map: $data');
+        }
+      } catch (e) {
+        debugPrint('❌ Error procesando status_update: $e');
+      }
+
       notifyListeners();
     });
 
     _socket!.on('location_update', (data) {
-      print('Actualización de ubicación: $data');
-      _currentEnvioStatus = {...?_currentEnvioStatus, ...data};
+      debugPrint('📍 Location update recibido:');
+      debugPrint('   Data: $data');
+
+      try {
+        if (data is Map) {
+          // Crear nuevo status combinando el anterior con la nueva ubicación
+          Map<String, dynamic> newStatus = {
+            ..._currentEnvioStatus ?? {},
+            ...Map<String, dynamic>.from(data),
+          };
+
+          // Asegurar que las coordenadas estén en el formato correcto
+          if (data['latitude'] != null) {
+            newStatus['latitude'] = _parseCoordinate(data['latitude']);
+          }
+          if (data['longitude'] != null) {
+            newStatus['longitude'] = _parseCoordinate(data['longitude']);
+          }
+
+          _currentEnvioStatus = newStatus;
+
+          debugPrint('   ✅ Status actualizado con ubicación:');
+          debugPrint('      Latitude: ${_currentEnvioStatus!['latitude']}');
+          debugPrint('      Longitude: ${_currentEnvioStatus!['longitude']}');
+        } else {
+          debugPrint('   ❌ Data no es Map: $data');
+        }
+      } catch (e) {
+        debugPrint('   ❌ Error procesando location_update: $e');
+      }
+
       notifyListeners();
     });
 
     _socket!.on('error', (data) {
-      print('Error: ${data['message']}');
+      debugPrint('❌ Socket error: ${data['message']}');
     });
   }
 
+  // Método auxiliar para parsear coordenadas
+  double? _parseCoordinate(dynamic coord) {
+    if (coord == null) return null;
+
+    if (coord is double) return coord;
+    if (coord is int) return coord.toDouble();
+    if (coord is String) {
+      try {
+        return double.parse(coord);
+      } catch (e) {
+        debugPrint('❌ Error parseando coordenada: $coord');
+        return null;
+      }
+    }
+
+    debugPrint('❌ Tipo de coordenada no reconocido: ${coord.runtimeType}');
+    return null;
+  }
+
+  // Método para debug - forzar actualización manual
+  void forceUpdateForDebug() {
+    debugPrint('🧪 Forzando actualización de debug');
+
+    if (_currentLocation != null) {
+      debugPrint('📍 Usando ubicación actual:');
+      debugPrint('   Latitud: ${_currentLocation!.latitude}');
+      debugPrint('   Longitud: ${_currentLocation!.longitude}');
+
+      _currentEnvioStatus = {
+        'latitude': _currentLocation!.latitude,
+        'longitude': _currentLocation!.longitude,
+        'estado': 'en_camino',
+        'conductor_nombre': 'Test Driver',
+        'timestamp': DateTime.now().toIso8601String(),
+      };
+    } else {
+      debugPrint('⚠️ No hay ubicación actual disponible para debug');
+      debugPrint('   Verifica que:');
+      debugPrint('   1. Los permisos de ubicación estén concedidos');
+      debugPrint('   2. El servicio de ubicación esté activado');
+      debugPrint('   3. El usuario sea de tipo conductor');
+
+      // Intentar obtener la ubicación actual
+      _location
+          .getLocation()
+          .then((locationData) {
+            if (locationData.latitude != null &&
+                locationData.longitude != null) {
+              debugPrint('✅ Ubicación obtenida:');
+              debugPrint('   Latitud: ${locationData.latitude}');
+              debugPrint('   Longitud: ${locationData.longitude}');
+
+              _currentLocation = locationData;
+              _currentEnvioStatus = {
+                'latitude': locationData.latitude,
+                'longitude': locationData.longitude,
+                'estado': 'en_camino',
+                'conductor_nombre': 'Test Driver',
+                'timestamp': DateTime.now().toIso8601String(),
+              };
+              notifyListeners();
+            } else {
+              debugPrint('❌ No se pudo obtener la ubicación');
+            }
+          })
+          .catchError((error) {
+            debugPrint('❌ Error obteniendo ubicación: $error');
+          });
+    }
+
+    notifyListeners();
+  }
+
   Future<void> joinTracking(int envioId, String userType, String userId) async {
+    debugPrint('🔄 Uniéndose al tracking:');
+    debugPrint('   Envío ID: $envioId');
+    debugPrint('   Tipo de usuario: $userType');
+    debugPrint('   User ID: $userId');
+
     _currentEnvioId = envioId;
 
     // Esperar a que el socket esté conectado
     if (_socket == null || !_socket!.connected) {
-      print('⏳ Esperando conexión de socket...');
+      debugPrint('⏳ Esperando conexión de socket...');
       await _waitForSocketConnection();
     }
 
-    print('✅ Uniéndose a tracking: envio_id=$envioId, user_id=$userId');
+    debugPrint('✅ Socket conectado, enviando join_tracking');
     _socket!.emit('join_tracking', {
       'envio_id': envioId,
-      'user_type': userType, // 'cliente' o 'conductor'
+      'user_type': userType,
       'user_id': userId,
     });
+
+    // Inicializar estado del envío
+    _currentEnvioStatus = {
+      'estado': 'pendiente',
+      'timestamp': DateTime.now().toIso8601String(),
+      'direccion_origen': null,
+      'direccion_destino': null,
+    };
+
+    if (userType == 'conductor') {
+      debugPrint('🚗 Usuario es conductor, obteniendo ubicación inicial...');
+      try {
+        final locationData = await _location.getLocation();
+        if (locationData.latitude != null && locationData.longitude != null) {
+          _currentLocation = locationData;
+          _currentEnvioStatus!['latitude'] = locationData.latitude;
+          _currentEnvioStatus!['longitude'] = locationData.longitude;
+          debugPrint('📍 Ubicación inicial obtenida:');
+          debugPrint('   Latitud: ${locationData.latitude}');
+          debugPrint('   Longitud: ${locationData.longitude}');
+        } else {
+          debugPrint('⚠️ No se pudo obtener ubicación inicial');
+        }
+      } catch (e) {
+        debugPrint('❌ Error obteniendo ubicación inicial: $e');
+      }
+    }
+
+    notifyListeners();
   }
-  
+
   Future<void> _waitForSocketConnection() async {
     const timeout = Duration(seconds: 5);
     final start = DateTime.now();
 
-    while (!_socket!.connected) {
+    while (_socket != null && !_socket!.connected) {
       await Future.delayed(const Duration(milliseconds: 100));
       if (DateTime.now().difference(start) > timeout) {
         print('❌ No se pudo conectar al socket a tiempo');
@@ -111,7 +322,6 @@ class TrackingService extends ChangeNotifier {
       }
     }
   }
-
 
   // Dejar de trackear un envío
   void leaveTracking() {
@@ -127,34 +337,73 @@ class TrackingService extends ChangeNotifier {
 
   // Iniciar seguimiento de ubicación (para conductores)
   Future<void> startLocationTracking(String conductorId) async {
+    debugPrint(
+      '🚗 Iniciando tracking de ubicación para conductor: $conductorId',
+    );
+
     bool serviceEnabled = await _location.serviceEnabled();
     if (!serviceEnabled) {
+      debugPrint(
+        '⚠️ Servicio de ubicación desactivado, solicitando activación...',
+      );
       serviceEnabled = await _location.requestService();
-      if (!serviceEnabled) return;
+      if (!serviceEnabled) {
+        debugPrint('❌ No se pudo activar el servicio de ubicación');
+        return;
+      }
     }
 
     PermissionStatus permissionGranted = await _location.hasPermission();
     if (permissionGranted == PermissionStatus.denied) {
+      debugPrint('⚠️ Permiso de ubicación denegado, solicitando...');
       permissionGranted = await _location.requestPermission();
-      if (permissionGranted != PermissionStatus.granted) return;
+      if (permissionGranted != PermissionStatus.granted) {
+        debugPrint('❌ No se pudo obtener permiso de ubicación');
+        return;
+      }
     }
 
-    _locationSubscription = _location.onLocationChanged.listen((
-      LocationData locationData,
-    ) {
-      _currentLocation = locationData;
+    debugPrint('✅ Permisos de ubicación concedidos, iniciando tracking...');
 
-      // Enviar ubicación al servidor
-      if (_socket != null && _isConnected) {
-        _socket!.emit('update_location', {
-          'conductor_id': conductorId,
-          'latitude': locationData.latitude,
-          'longitude': locationData.longitude,
-        });
-      }
+    _locationSubscription = _location.onLocationChanged.listen(
+      (LocationData locationData) {
+        debugPrint('📍 Nueva ubicación detectada:');
+        debugPrint('   Latitud: ${locationData.latitude}');
+        debugPrint('   Longitud: ${locationData.longitude}');
 
-      notifyListeners();
-    });
+        _currentLocation = locationData;
+
+        // Actualizar el estado actual con la nueva ubicación
+        if (_currentEnvioStatus != null) {
+          _currentEnvioStatus = {
+            ..._currentEnvioStatus!,
+            'latitude': locationData.latitude,
+            'longitude': locationData.longitude,
+            'last_location_update': DateTime.now().toIso8601String(),
+          };
+        }
+
+        // Enviar ubicación al servidor
+        if (_socket != null && _isConnected) {
+          debugPrint('📤 Enviando ubicación al servidor...');
+          _socket!.emit('update_location', {
+            'conductor_id': conductorId,
+            'latitude': locationData.latitude,
+            'longitude': locationData.longitude,
+            'timestamp': DateTime.now().toIso8601String(),
+          });
+        } else {
+          debugPrint('⚠️ No se pudo enviar ubicación: Socket no conectado');
+        }
+
+        notifyListeners();
+      },
+      onError: (error) {
+        debugPrint('❌ Error en el tracking de ubicación: $error');
+      },
+    );
+
+    debugPrint('✅ Tracking de ubicación iniciado correctamente');
   }
 
   // Detener seguimiento de ubicación
