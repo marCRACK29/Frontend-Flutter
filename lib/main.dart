@@ -29,11 +29,8 @@ class MyApp extends StatelessWidget {
         '/': (context) => const HomeScreen(), // Nuevo menú de navegación
         '/map': (context) => const OpenStreetMapView(), // Pantalla del mapa
         '/test': (context) => TestConnectionScreen(), // Pantalla para el test de conexión
-<<<<<<< Updated upstream
-=======
         '/orders': (context) => const OrdersHomeView(), // Pantalla para el menu de ordenes
         '/delivery': (context) => DeliveryListView(),
->>>>>>> Stashed changes
       },
     );
   }
@@ -62,21 +59,12 @@ class HomeScreen extends StatelessWidget {
               },
               child: const Text('Probar conexión Backend'),
             ),
-<<<<<<< Updated upstream
-=======
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/orders');
-              },
-              child: const Text('Envíos'),
-            ),
             ElevatedButton(
               onPressed: () {
                 Navigator.pushNamed(context, '/delivery');
               },
               child: const Text('Delivery'),
             ),
->>>>>>> Stashed changes
           ],
         ),
       ),
