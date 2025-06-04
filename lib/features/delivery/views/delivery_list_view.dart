@@ -1,77 +1,55 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../providers/delivery_provider.dart';
+import '../models/envio_model.dart';
+import '../services/delivery_service.dart';
 import 'delivery_detail_view.dart';
 
 class DeliveryListView extends StatefulWidget {
-  const DeliveryListView({super.key});
-
   @override
-  State<DeliveryListView> createState() => _DeliveryListViewState();
+  _DeliveryListViewState createState() => _DeliveryListViewState();
 }
 
 class _DeliveryListViewState extends State<DeliveryListView> {
+  late Future<List<EnvioModel>> _deliveries;
+
   @override
   void initState() {
     super.initState();
-
-    // Esperar a que el widget se construya antes de llamar al provider
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      final provider = Provider.of<DeliveryProvider>(context, listen: false);
-      provider.cargarEnvios('15.123.102-4'); // Puedes cambiar '1' por el ID real del conductor
-    });
+    // Cambia el conductorId por el que corresponda en tu sistema real
+    _deliveries = DeliveryService().obtenerEnviosPorConductor("15.123.102-4");
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Envíos Asignados'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: () {
-              Provider.of<DeliveryProvider>(context, listen: false).cargarEnvios('15.123.123-5');
-            },
-          )
-        ],
-      ),
-      body: Consumer<DeliveryProvider>(
-        builder: (context, provider, child) {
-          if (provider.cargando) {
-            return const Center(child: CircularProgressIndicator());
+      appBar: AppBar(title: Text('Envíos Asignados')),
+      body: FutureBuilder<List<EnvioModel>>(
+        future: _deliveries,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No hay envíos asignados'));
           }
 
-          if (provider.error != null) {
-            return Center(child: Text('Error: ${provider.error}'));
-          }
-
-          if (provider.envios.isEmpty) {
-            return const Center(child: Text('No hay envíos asignados.'));
-          }
-
+          final deliveries = snapshot.data!;
           return ListView.builder(
-            itemCount: provider.envios.length,
+            itemCount: deliveries.length,
             itemBuilder: (context, index) {
-              final envio = provider.envios[index];
+              final envio = deliveries[index];
               return Card(
-                margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                elevation: 3,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
-                ),
+                margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListTile(
-                  title: Text(envio.direccion),
-                  subtitle: Text('Estado: ${envio.estado}'),
-                  trailing: const Icon(Icons.chevron_right),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => DeliveryDetailView(envio: envio),
-                      ),
-                    );
-                  },
+                  title: Text('Envío #${envio.idEnvio}'),
+                  subtitle: Text('Estado: ${envio.estadoActual.estado}'),
+                  trailing: Icon(Icons.chevron_right),
+                  onTap: () => Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => DeliveryDetailView(envio: envio),
+                    ),
+                  ),
                 ),
               );
             },

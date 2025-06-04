@@ -1,43 +1,30 @@
+import 'estado_model.dart';
+
 class EnvioModel {
-  final int id;
-  final String direccion;
-  final String contacto;
-  final String instrucciones;
-  final String estado;
-  final double? lat;
-  final double? lng;
+  final int idEnvio;
+  final EstadoModel estadoActual;
+  final String direccionDestino;
+  final String remitente;
+  final String? receptor;
+  final String conductorId;
 
   EnvioModel({
-    required this.id,
-    required this.direccion,
-    required this.contacto,
-    required this.instrucciones,
-    required this.estado,
-    this.lat,
-    this.lng,
+    required this.idEnvio,
+    required this.estadoActual,
+    required this.direccionDestino,
+    required this.remitente,
+    this.receptor,
+    required this.conductorId,
   });
 
   factory EnvioModel.fromJson(Map<String, dynamic> json) {
     return EnvioModel(
-      id: json['id_envio'],
-      direccion: json['direccion'] ?? '',
-      contacto: json['contacto'] ?? '',
-      instrucciones: json['instrucciones'] ?? '',
-      estado: json['estado'] ?? '',
-      lat: json['lat']?.toDouble(),
-      lng: json['lng']?.toDouble(),
+      idEnvio: json['id_envio'],
+      estadoActual: EstadoModel.fromJson(json['estado_actual']),
+      direccionDestino: json['direccion_destino'],
+      remitente: json['remitente'],
+      receptor: json['receptor'],
+      conductorId: json['conductor_id'],
     );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'id_envio': id,
-      'direccion': direccion,
-      'contacto': contacto,
-      'instrucciones': instrucciones,
-      'estado': estado,
-      'lat': lat,
-      'lng': lng,
-    };
   }
 }
