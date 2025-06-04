@@ -27,6 +27,9 @@ class ApiEndpoints {
   static const String osmDetails = '/details';
 
   static final String enviosConductor = '$baseUrl/api/envios/conductor';
+  static String actualizarEstadoEnvio(int envioId) => '$baseUrl/api/envios/$envioId/estado';
+
+
 
   // Helper methods
   static String getUserRoutes(String userId) => '/maps/routes/user/$userId';

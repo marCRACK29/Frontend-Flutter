@@ -42,7 +42,7 @@ class MyApp extends StatelessWidget {
               userType: 'cliente',
               userId: '21.595.452-3',
             ),
-        '/delivery': (context) => const DeliveryListView(),
+        '/delivery': (context) => DeliveryListView(),
       },
     );
   }
