@@ -1,13 +1,44 @@
 import 'package:flutter/material.dart';
 import '../models/envio_model.dart';
+import '../services/delivery_service.dart';
 
-class DeliveryDetailView extends StatelessWidget {
+class DeliveryDetailView extends StatefulWidget {
   final EnvioModel envio;
 
   const DeliveryDetailView({Key? key, required this.envio}) : super(key: key);
 
   @override
+  State<DeliveryDetailView> createState() => _DeliveryDetailViewState();
+}
+
+class _DeliveryDetailViewState extends State<DeliveryDetailView> {
+  late String _estadoActual;
+
+  @override
+  void initState() {
+    super.initState();
+    _estadoActual = widget.envio.estadoActual.estado;
+  }
+
+  Future<void> _actualizarEstado(String nuevoEstado) async {
+    try {
+      await DeliveryService().actualizarEstadoEnvio(widget.envio.idEnvio, nuevoEstado);
+      setState(() {
+        _estadoActual = nuevoEstado;
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Estado actualizado a "$nuevoEstado"')),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error al actualizar estado: $e')),
+      );
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final envio = widget.envio;
     return Scaffold(
       appBar: AppBar(title: Text('Detalles del Envío')),
       body: Padding(
@@ -16,38 +47,41 @@ class DeliveryDetailView extends StatelessWidget {
           children: [
             Text('ID Envío: ${envio.idEnvio}', style: TextStyle(fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
-            Text('Estado actual: ${envio.estadoActual}'),
+            Text('Estado actual: $_estadoActual'),
             SizedBox(height: 10),
-            Text('Fecha último estado: ${envio.fechaUltimoEstado ?? "No disponible"}'),
+            Text('Dirección de destino: ${envio.direccionDestino}'),
             SizedBox(height: 10),
-            Text('Remitente (ID): ${envio.remitente}'),
+            Text('Remitente: ${envio.remitente}'),
             SizedBox(height: 10),
-            Text('Receptor (ID): ${envio.receptor}'),
+            Text('Receptor: ${envio.receptor ?? "No disponible"}'),
             SizedBox(height: 10),
-            Text('Ruta (ID): ${envio.rutaId}'),
+            Text('Conductor ID: ${envio.conductorId}'),
+            SizedBox(height: 30),
+            Text('Cambiar estado:', style: TextStyle(fontWeight: FontWeight.bold)),
             SizedBox(height: 10),
-            // Los campos siguientes aparecerán solo si el backend los empieza a enviar
-            Text('Dirección: ${envio.direccion ?? "No disponible"}'),
-            SizedBox(height: 10),
-            Text('Contacto: ${envio.contacto ?? "No disponible"}'),
-            SizedBox(height: 10),
-            Text('Instrucciones: ${envio.instrucciones ?? "No disponible"}'),
-            SizedBox(height: 20),
-            ElevatedButton.icon(
-              onPressed: () {
-                // lógica para confirmar entrega aquí
-              },
-              icon: Icon(Icons.check_circle),
-              label: Text('Confirmar Entrega'),
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.green),
-            ),
-            SizedBox(height: 10),
-            ElevatedButton.icon(
-              onPressed: () {
-                // lógica para abrir mapa aquí
-              },
-              icon: Icon(Icons.map),
-              label: Text('Abrir Mapa'),
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _actualizarEstado("preparacion"),
+                    child: Text('En preparación'),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _actualizarEstado("transito"),
+                    child: Text('En camino'),
+                  ),
+                ),
+                SizedBox(width: 8),
+                Expanded(
+                  child: ElevatedButton(
+                    onPressed: () => _actualizarEstado("entregado"),
+                    child: Text('Entregado'),
+                  ),
+                ),
+              ],
             ),
           ],
         ),

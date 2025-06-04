@@ -1,46 +1,30 @@
+import 'estado_model.dart';
+
 class EnvioModel {
   final int idEnvio;
-  final String estadoActual;
-  final String? fechaUltimoEstado;
+  final EstadoModel estadoActual;
+  final String direccionDestino;
   final String remitente;
-  final String receptor;
-  final String rutaId;
-
-  // Los campos opcionales para el futuro
-  final String? direccion;
-  final String? contacto;
-  final String? instrucciones;
-  final double? lat;
-  final double? lng;
+  final String? receptor;
+  final String conductorId;
 
   EnvioModel({
     required this.idEnvio,
     required this.estadoActual,
-    this.fechaUltimoEstado,
+    required this.direccionDestino,
     required this.remitente,
-    required this.receptor,
-    required this.rutaId,
-    this.direccion,
-    this.contacto,
-    this.instrucciones,
-    this.lat,
-    this.lng,
+    this.receptor,
+    required this.conductorId,
   });
 
   factory EnvioModel.fromJson(Map<String, dynamic> json) {
     return EnvioModel(
       idEnvio: json['id_envio'],
-      estadoActual: json['estado_actual'] ?? '',
-      fechaUltimoEstado: json['fecha_ultimo_estado'],
-      remitente: json['remitente']?.toString() ?? '',
-      receptor: json['receptor']?.toString() ?? '',
-      rutaId: json['ruta_id']?.toString() ?? '',
-      direccion: json['direccion'],          // Para futuro, si lo agregas al backend
-      contacto: json['contacto'],           // Para futuro, si lo agregas al backend
-      instrucciones: json['instrucciones'], // Para futuro
-      lat: json['lat']?.toDouble(),         // Para futuro
-      lng: json['lng']?.toDouble(),         // Para futuro
+      estadoActual: EstadoModel.fromJson(json['estado_actual']),
+      direccionDestino: json['direccion_destino'],
+      remitente: json['remitente'],
+      receptor: json['receptor'],
+      conductorId: json['conductor_id'],
     );
   }
 }
-

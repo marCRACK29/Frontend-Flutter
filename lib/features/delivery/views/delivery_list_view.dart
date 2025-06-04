@@ -14,7 +14,8 @@ class _DeliveryListViewState extends State<DeliveryListView> {
   @override
   void initState() {
     super.initState();
-    _deliveries = DeliveryService().obtenerEnviosPorConductor("15.123.123-5");;
+    // Cambia el conductorId por el que corresponda en tu sistema real
+    _deliveries = DeliveryService().obtenerEnviosPorConductor("15.123.102-4");
   }
 
   @override
@@ -27,7 +28,7 @@ class _DeliveryListViewState extends State<DeliveryListView> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return Center(child: Text('Error al cargar envíos'));
+            return Center(child: Text('Error: ${snapshot.error}'));
           } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
             return Center(child: Text('No hay envíos asignados'));
           }
@@ -41,15 +42,7 @@ class _DeliveryListViewState extends State<DeliveryListView> {
                 margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
                 child: ListTile(
                   title: Text('Envío #${envio.idEnvio}'),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('Estado: ${envio.estadoActual}'),
-                      Text('Remitente: ${envio.remitente}'),
-                      Text('Receptor: ${envio.receptor}'),
-                      Text('Ruta: ${envio.rutaId}'),
-                    ],
-                  ),
+                  subtitle: Text('Estado: ${envio.estadoActual.estado}'),
                   trailing: Icon(Icons.chevron_right),
                   onTap: () => Navigator.push(
                     context,

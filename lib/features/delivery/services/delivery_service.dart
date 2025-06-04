@@ -39,22 +39,22 @@ class DeliveryService {
 
 
   Future<void> actualizarEstadoEnvio(int envioId, String nuevoEstado) async {
-    try {
-      final response = await _dio.put(
-        '${ApiEndpoints.baseUrl}/envios/estado',
-        data: {
-          'envio_id': envioId,
-          'nuevo_estado': nuevoEstado,
+    final response = await _dio.put(
+      ApiEndpoints.actualizarEstadoEnvio(envioId),
+      data: {
+        'nuevo_estado': nuevoEstado,
+      },
+      options: Options(
+        headers: {
+          'Ngrok-Skip-Browser-Warning': 'true',
+          'Content-Type': 'application/json',
         },
-      );
+      ),
+);
 
-      if (response.statusCode != 200) {
-        throw Exception('Error al actualizar estado');
-      }
-    } catch (e) {
-      throw Exception('Error al comunicarse con el servidor: $e');
-    }
   }
+
+
 
   
 }
