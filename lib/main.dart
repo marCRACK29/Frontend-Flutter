@@ -63,7 +63,7 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.pushReplacementNamed(context, '/orders');
               },
-              child: const Text('Órdenes'),
+              child: const Text('Envíos'),
             ),
           ],
         ),

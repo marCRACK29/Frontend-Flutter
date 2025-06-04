@@ -33,7 +33,6 @@ class _CrearEnvioScreenState extends State<CrearEnvioScreen> {
         );
 
         final respuesta = await envioService.crearEnvio(envio);
-        print('Respuesta completa: $respuesta');
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Envío creado: ID ${respuesta["envío"]["id"]}')),
         );
@@ -48,7 +47,15 @@ class _CrearEnvioScreenState extends State<CrearEnvioScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Crear nuevo envío")),
+      appBar: AppBar(
+        backgroundColor: Colors.indigo,
+        centerTitle: true,
+        title: const Text(
+          "Crear nuevo envío",
+          style: TextStyle(color: Colors.white),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: Form(

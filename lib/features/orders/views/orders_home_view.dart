@@ -18,11 +18,6 @@ class _OrdersHomeViewState extends State<OrdersHomeView> {
   try {
     String usuarioId = '21.595.452-3'; // Reemplaza con el usuario logueado
     final envios = await envioService.obtenerEnviosPorUsuario(usuarioId);
-
-    print("Envios recibidos:");
-    for (var envio in envios) {
-      print(envio);
-    }
     if (!mounted) return; // Verifica que el widget esté montado
 
     Navigator.push(
@@ -32,7 +27,6 @@ class _OrdersHomeViewState extends State<OrdersHomeView> {
       ),
     );
   } catch (e) {
-    print("Error al obtener historial: $e");
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Error: $e')),
     );
@@ -42,14 +36,23 @@ class _OrdersHomeViewState extends State<OrdersHomeView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text("Órdenes")),
+      appBar: AppBar(
+        backgroundColor: Colors.indigo,
+        centerTitle: true,
+        title: const Text(
+          "Envíos",
+          style: TextStyle(color: Colors.white),
+        ),
+        iconTheme: const IconThemeData(color: Colors.white),
+      ),
+
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             ElevatedButton(
               onPressed: _verHistorial,
-              child: const Text("Ver historial de órdenes"),
+              child: const Text("Ver historial de envíos"),
             ),
             ElevatedButton(
               onPressed: () {
@@ -58,7 +61,7 @@ class _OrdersHomeViewState extends State<OrdersHomeView> {
                   MaterialPageRoute(builder: (context) => const CrearEnvioScreen()),
                 );
               },
-              child: const Text("Crear nueva orden"),
+              child: const Text("Crear nuevo envío"),
             ),
           ],
         ),
