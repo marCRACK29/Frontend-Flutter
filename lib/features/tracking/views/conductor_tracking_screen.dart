@@ -8,7 +8,7 @@ import '../services/location_service.dart';
 import '../services/geocoding_service.dart';
 import '../services/routing_service.dart';
 import '../services/envio_service.dart';
-import '../widgets/envio_selector_widget.dart';
+import 'dart:async';
 
 class ConductorTrackingScreen extends StatefulWidget {
   final String conductorId;
@@ -22,15 +22,14 @@ class ConductorTrackingScreen extends StatefulWidget {
 }
 
 class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
-  final MapController _mapController = MapController();
-
   LatLng? _currentLocation;
   LatLng? _destinationLocation;
   RouteResponse? _route;
   Envio? _selectedEnvio;
   List<Envio> _availableEnvios = [];
-  bool _isLoading = false;
+  bool _isLoading = true;
   String? _errorMessage;
+  StreamSubscription<LatLng>? _locationSubscription;
 
   @override
   void initState() {
@@ -38,79 +37,82 @@ class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
     _initializeTracking();
   }
 
+  @override
+  void dispose() {
+    _locationSubscription?.cancel();
+    super.dispose();
+  }
+
   Future<void> _initializeTracking() async {
-    setState(() => _isLoading = true);
-
     try {
-      // Get current location
+      // Obtener ubicación actual
       _currentLocation = await LocationService.getCurrentLocation();
-
-      // Get available envios for conductor
-      _availableEnvios = await EnvioService.getEnviosByConductor(
-        widget.conductorId,
-      );
-
-      // Listen to location updates
-      LocationService.getLocationStream().listen((location) {
+      
+      // Obtener envíos disponibles
+      _availableEnvios = await EnvioService.getEnviosByConductor(widget.conductorId);
+      
+      // Si hay envíos, seleccionar el primero automáticamente
+      if (_availableEnvios.isNotEmpty) {
+        await _selectEnvio(_availableEnvios.first);
+      }
+      
+      // Escuchar actualizaciones de ubicación
+      _locationSubscription = LocationService.getLocationStream().listen((location) {
         if (mounted) {
-          setState(() => _currentLocation = location);
-          if (_destinationLocation != null) {
-            _updateRoute();
-          }
+          setState(() {
+            _currentLocation = location;
+          });
+          _updateRoute(); // Actualizar ruta cuando cambie la ubicación
         }
       });
+      
     } catch (e) {
-      _errorMessage = 'Error initializing tracking: $e';
-    } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() {
+          _errorMessage = 'Error: $e';
+          _isLoading = false;
+        });
+      }
     }
   }
 
   Future<void> _selectEnvio(Envio envio) async {
     setState(() => _isLoading = true);
-
+    
     try {
       _selectedEnvio = envio;
-
-      // Geocode destination address
+      
+      // Obtener coordenadas del destino
       _destinationLocation = await GeocodingService.getCoordinatesFromAddress(
         envio.direccionDestino,
       );
-
+      
       if (_destinationLocation == null) {
-        throw Exception('No se pudo encontrar la dirección de destino');
+        throw Exception('No se pudo encontrar la dirección');
       }
-
-      // Get route if we have current location
-      if (_currentLocation != null) {
-        await _updateRoute();
-        _centerMapOnRoute();
-      }
+      
+      // Obtener ruta
+      await _updateRoute();
+      
     } catch (e) {
-      _errorMessage = 'Error selecting envio: $e';
+      if (mounted) {
+        setState(() => _errorMessage = 'Error: $e');
+      }
     } finally {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
     }
   }
 
   Future<void> _updateRoute() async {
     if (_currentLocation != null && _destinationLocation != null) {
-      _route = await RoutingService.getRoute(
-        _currentLocation!,
-        _destinationLocation!,
-      );
-      if (mounted) setState(() {});
-    }
-  }
-
-  void _centerMapOnRoute() {
-    if (_currentLocation != null && _destinationLocation != null) {
-      final bounds = LatLngBounds.fromPoints([
-        _currentLocation!,
-        _destinationLocation!,
-      ]);
-
-      _mapController.move(bounds.center, _mapController.camera.zoom);
+      try {
+        _route = await RoutingService.getRoute(_currentLocation!, _destinationLocation!);
+        if (mounted) setState(() {});
+      } catch (e) {
+        debugPrint('Error actualizando ruta: $e');
+      }
     }
   }
 
@@ -121,30 +123,37 @@ class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
         title: const Text('Tracking - Conductor'),
         backgroundColor: Colors.blue[700],
         foregroundColor: Colors.white,
-        actions: [
-          if (_selectedEnvio != null)
-            IconButton(
-              icon: const Icon(Icons.center_focus_strong),
-              onPressed: _centerMapOnRoute,
-              tooltip: 'Centrar mapa',
-            ),
-        ],
       ),
       body: Column(
         children: [
-          // Envio Selector
-          EnvioSelectorWidget(
-            envios: _availableEnvios,
-            selectedEnvio: _selectedEnvio,
-            onEnvioSelected: _selectEnvio,
-            isLoading: _isLoading,
-          ),
-
-          // Map
+          // Selector simple de envíos
+          if (_availableEnvios.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              child: DropdownButtonFormField<Envio>(
+                value: _selectedEnvio,
+                decoration: const InputDecoration(
+                  labelText: 'Seleccionar Envío',
+                  border: OutlineInputBorder(),
+                ),
+                items: _availableEnvios.map((envio) {
+                  return DropdownMenuItem(
+                    value: envio,
+                    child: Text('Envío #${envio.id} - ${envio.direccionDestino}'),
+                  );
+                }).toList(),
+                onChanged: _isLoading ? null : (envio) {
+                  if (envio != null) _selectEnvio(envio);
+                },
+              ),
+            ),
+          
+          // Mapa
           Expanded(child: _buildMap()),
-
-          // Status Bar
-          if (_selectedEnvio != null) _buildStatusBar(),
+          
+          // Información de la ruta
+          if (_selectedEnvio != null && _route != null)
+            _buildRouteInfo(),
         ],
       ),
     );
@@ -152,7 +161,16 @@ class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
 
   Widget _buildMap() {
     if (_isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            CircularProgressIndicator(),
+            SizedBox(height: 16),
+            Text('Cargando...'),
+          ],
+        ),
+      );
     }
 
     if (_errorMessage != null) {
@@ -160,13 +178,16 @@ class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(Icons.error, size: 64, color: Colors.red[300]),
+            const Icon(Icons.error, size: 64, color: Colors.red),
             const SizedBox(height: 16),
             Text(_errorMessage!, textAlign: TextAlign.center),
             const SizedBox(height: 16),
             ElevatedButton(
               onPressed: () {
-                setState(() => _errorMessage = null);
+                setState(() {
+                  _errorMessage = null;
+                  _isLoading = true;
+                });
                 _initializeTracking();
               },
               child: const Text('Reintentar'),
@@ -189,68 +210,82 @@ class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
       );
     }
 
+    // Calcular el centro del mapa
+    LatLng mapCenter = _currentLocation!;
+    double zoom = 15.0;
+    
+    if (_destinationLocation != null) {
+      // Si tenemos destino, centrar entre origen y destino
+      final bounds = LatLngBounds.fromPoints([_currentLocation!, _destinationLocation!]);
+      mapCenter = bounds.center;
+      zoom = 13.0;
+    }
+
     return FlutterMap(
-      mapController: _mapController,
       options: MapOptions(
-        initialCenter: _currentLocation!,
-        initialZoom: 15.0,
+        initialCenter: mapCenter,
+        initialZoom: zoom,
         minZoom: 5.0,
         maxZoom: 18.0,
       ),
       children: [
-        // Tile Layer
+        // Capa de tiles
         TileLayer(
           urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
           userAgentPackageName: 'com.example.conductor_tracking',
           tileProvider: CancellableNetworkTileProvider(),
         ),
 
-        // Route Polyline
+        // Ruta
         if (_route?.coordinates.isNotEmpty == true)
           PolylineLayer(
             polylines: [
               Polyline(
                 points: _route!.coordinates,
-                strokeWidth: 5.0,
+                strokeWidth: 4.0,
                 color: Colors.blue,
               ),
             ],
           ),
 
-        // Markers
+        // Marcadores
         MarkerLayer(
           markers: [
-            // Current location marker
+            // Ubicación actual
             Marker(
               point: _currentLocation!,
               child: Container(
+                width: 30,
+                height: 30,
                 decoration: BoxDecoration(
                   color: Colors.blue,
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white, width: 2),
+                  border: Border.all(color: Colors.white, width: 3),
                 ),
                 child: const Icon(
                   Icons.navigation,
                   color: Colors.white,
-                  size: 20,
+                  size: 16,
                 ),
               ),
             ),
 
-            // Destination marker
+            // Destino
             if (_destinationLocation != null)
               Marker(
                 point: _destinationLocation!,
                 child: Container(
+                  width: 30,
+                  height: 30,
                   decoration: BoxDecoration(
                     color: Colors.red,
                     shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
+                    border: Border.all(color: Colors.white, width: 3),
                   ),
                   child: const Icon(
                     Icons.location_on,
                     color: Colors.white,
-                    size: 20,
+                    size: 16,
                   ),
                 ),
               ),
@@ -260,74 +295,67 @@ class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
     );
   }
 
-  Widget _buildStatusBar() {
+  Widget _buildRouteInfo() {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.grey[100],
+        color: Colors.white,
         boxShadow: [
           BoxShadow(
             offset: const Offset(0, -2),
             blurRadius: 4,
-            color: Colors.black.withAlpha(26),
+            color: Colors.black.withOpacity(0.1),
           ),
         ],
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          Row(
+          Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Icon(Icons.local_shipping, color: Colors.blue[700]),
-              const SizedBox(width: 8),
+              Icon(Icons.route, color: Colors.blue[700]),
+              const SizedBox(height: 4),
               Text(
-                'Envío #${_selectedEnvio!.id}',
+                '${(_route!.distance / 1000).toStringAsFixed(1)} km',
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
                 ),
               ),
+              const Text('Distancia', style: TextStyle(fontSize: 12)),
             ],
           ),
-          const SizedBox(height: 8),
-          Row(
+          Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              const Icon(Icons.location_on, size: 16, color: Colors.red),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  _selectedEnvio!.direccionDestino,
-                  style: const TextStyle(fontSize: 14),
+              Icon(Icons.access_time, color: Colors.blue[700]),
+              const SizedBox(height: 4),
+              Text(
+                '${(_route!.duration / 60).toStringAsFixed(0)} min',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
               ),
+              const Text('Tiempo', style: TextStyle(fontSize: 12)),
             ],
           ),
-          if (_route != null) ...[
-            const SizedBox(height: 8),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceAround,
-              children: [
-                Column(
-                  children: [
-                    const Text('Distancia', style: TextStyle(fontSize: 12)),
-                    Text(
-                      '${(_route!.distance / 1000).toStringAsFixed(1)} km',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
+          Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.local_shipping, color: Colors.blue[700]),
+              const SizedBox(height: 4),
+              Text(
+                '#${_selectedEnvio!.id}',
+                style: const TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
                 ),
-                Column(
-                  children: [
-                    const Text('Tiempo est.', style: TextStyle(fontSize: 12)),
-                    Text(
-                      '${(_route!.duration / 60).toStringAsFixed(0)} min',
-                      style: const TextStyle(fontWeight: FontWeight.bold),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-          ],
+              ),
+              const Text('Envío', style: TextStyle(fontSize: 12)),
+            ],
+          ),
         ],
       ),
     );
