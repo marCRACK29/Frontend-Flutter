@@ -5,20 +5,15 @@ import 'package:frontend/features/maps/views/openstreetmap_view.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/shared/test_connection_screen.dart';
 import 'features/delivery/views/delivery_list_view.dart';
-import 'package:frontend/features/tracking/services/tracking_service.dart';
-import 'features/tracking/views/tracking_screen.dart';
 import 'package:frontend/features/orders/views/orders_home_view.dart';
-import 'package:frontend/features/tracking/widgets/map_widget.dart';
+import 'package:frontend/features/tracking/views/conductor_tracking_screen.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(); // carga las variables de entorno
   runApp(
     MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => MapProvider()),
-        ChangeNotifierProvider(create: (_) => TrackingService()),
-      ],
+      providers: [ChangeNotifierProvider(create: (_) => MapProvider())],
       child: const MyApp(),
     ),
   );
@@ -37,14 +32,7 @@ class MyApp extends StatelessWidget {
         '/map': (context) => const OpenStreetMapView(),
         '/test': (context) => TestConnectionScreen(),
         '/tracking':
-            (context) => const TrackingScreen(
-              envioId: 1,
-              userType: 'conductor',
-              userId: '15.123.102-4',
-            ),
-        '/tracking-map':
-            (context) =>
-                const TrackingMapWidget(destinationAddress: 'Santiago, Chile'),
+            (context) => ConductorTrackingScreen(conductorId: '15.123.102-4'),
         '/delivery': (context) => DeliveryListView(),
         '/orders': (context) => const OrdersHomeView(),
       },
@@ -79,7 +67,7 @@ class HomeScreen extends StatelessWidget {
               onPressed: () {
                 Navigator.pushReplacementNamed(context, '/tracking');
               },
-              child: const Text('Monitoreo de envíos'),
+              child: const Text('Monitoreo de envíos conductor'),
             ),
             ElevatedButton(
               onPressed: () {
