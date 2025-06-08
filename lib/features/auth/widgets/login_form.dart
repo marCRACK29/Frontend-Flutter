@@ -37,7 +37,7 @@ class _LoginFormState extends State<LoginForm> {
             textInputAction: TextInputAction.next,
             decoration: InputDecoration(
               labelText: 'Correo electrónico',
-              hintText: 'ejemplo@lichaf.cl',
+              hintText: 'nombre@example.com',
               prefixIcon: const Icon(Icons.email_outlined),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(12),
@@ -176,11 +176,11 @@ class _LoginFormState extends State<LoginForm> {
   }
 
   void _handleDemoLogin(AuthProvider authProvider) async {
-    _emailController.text = 'demo@lichaf.cl';
+    _emailController.text = 'demo@example.com';
     _passwordController.text = 'demo123';
 
     final success = await authProvider.login(
-      'demo@lichaf.cl',
+      'demo@example.com',
       'demo123',
       rememberMe: _rememberMe,
     );

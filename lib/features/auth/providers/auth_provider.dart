@@ -1,17 +1,17 @@
 import 'package:flutter/foundation.dart';
 import '../models/user_model.dart';
-import '../services/api/auth_api_service.dart';
+import '../services/auth_service.dart';
 import '../../../core/storage/secure_storage.dart';
 
 enum AuthState { initial, loading, authenticated, unauthenticated, error }
 
-class AuthProvider with ChangeNotifier {
+class AuthProvider extends ChangeNotifier {
   AuthState _state = AuthState.initial;
   User? _user;
   String? _errorMessage;
   bool _isLoading = false;
 
-  final AuthApiService _authService = AuthApiService();
+  final AuthService _authService = AuthService();
   final SecureStorage _storage = SecureStorage.instance;
 
   // Getters
@@ -19,8 +19,7 @@ class AuthProvider with ChangeNotifier {
   User? get user => _user;
   String? get errorMessage => _errorMessage;
   bool get isLoading => _isLoading;
-  bool get isAuthenticated =>
-      _state == AuthState.authenticated && _user != null;
+  bool get isAuthenticated => _user != null;
 
   // Initialize auth state
   Future<void> initializeAuth() async {

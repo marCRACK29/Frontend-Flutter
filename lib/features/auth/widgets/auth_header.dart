@@ -67,7 +67,7 @@ class AuthHeaderWithBackground extends StatelessWidget {
             width: logoSize,
             height: logoSize,
             decoration: BoxDecoration(
-              color: txtColor.withOpacity(0.2),
+              color: txtColor.withAlpha(51),
               shape: BoxShape.circle,
             ),
             child:
@@ -102,7 +102,7 @@ class AuthHeaderWithBackground extends StatelessWidget {
           // Subtitle
           Text(
             subtitle,
-            style: TextStyle(fontSize: 16, color: txtColor.withOpacity(0.9)),
+            style: TextStyle(fontSize: 16, color: txtColor.withAlpha(230)),
             textAlign: TextAlign.center,
           ),
 
@@ -110,10 +110,10 @@ class AuthHeaderWithBackground extends StatelessWidget {
 
           // Institution name
           Text(
-            'Liceo Industrial Chileno-Alemán de Frutillar',
+            'PaquiMóvil',
             style: TextStyle(
               fontSize: 12,
-              color: txtColor.withOpacity(0.8),
+              color: txtColor.withAlpha(204),
               fontWeight: FontWeight.w500,
               letterSpacing: 0.5,
             ),

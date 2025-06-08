@@ -18,15 +18,15 @@ class LoginView extends StatelessWidget {
           child: Column(
             children: [
               const SizedBox(height: 40),
-              
+
               // Header
               const AuthHeader(
                 title: 'Bienvenido',
                 subtitle: 'Inicia sesión para continuar',
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Login Form
               Consumer<AuthProvider>(
                 builder: (context, authProvider, child) {
@@ -45,7 +45,11 @@ class LoginView extends StatelessWidget {
                           ),
                           child: Row(
                             children: [
-                              Icon(Icons.error_outline, color: Colors.red[600], size: 20),
+                              Icon(
+                                Icons.error_outline,
+                                color: Colors.red[600],
+                                size: 20,
+                              ),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -58,37 +62,40 @@ class LoginView extends StatelessWidget {
                               ),
                               GestureDetector(
                                 onTap: () => authProvider.clearError(),
-                                child: Icon(Icons.close, color: Colors.red[600], size: 18),
+                                child: Icon(
+                                  Icons.close,
+                                  color: Colors.red[600],
+                                  size: 18,
+                                ),
                               ),
                             ],
                           ),
                         ),
-                      
+
                       // Login Form
                       const LoginForm(),
                     ],
                   );
                 },
               ),
-              
+
               const SizedBox(height: 24),
-              
+
               // Register link
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Text(
                     '¿No tienes cuenta? ',
-                    style: TextStyle(
-                      color: Colors.grey[600],
-                      fontSize: 14,
-                    ),
+                    style: TextStyle(color: Colors.grey[600], fontSize: 14),
                   ),
                   GestureDetector(
                     onTap: () {
                       Navigator.push(
                         context,
-                        MaterialPageRoute(builder: (context) => const RegisterView()),
+                        MaterialPageRoute(
+                          builder: (context) => const RegisterView(),
+                        ),
                       );
                     },
                     child: Text(
@@ -102,9 +109,9 @@ class LoginView extends StatelessWidget {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 40),
-              
+
               // Demo credentials (for development)
               if (const bool.fromEnvironment('dart.vm.product') == false)
                 Container(
@@ -119,7 +126,11 @@ class LoginView extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.info_outline, color: Colors.blue[600], size: 16),
+                          Icon(
+                            Icons.info_outline,
+                            color: Colors.blue[600],
+                            size: 16,
+                          ),
                           const SizedBox(width: 8),
                           Text(
                             'Credenciales de prueba:',
@@ -133,7 +144,7 @@ class LoginView extends StatelessWidget {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Email: demo@lichaf.cl\nContraseña: demo123',
+                        'Email: demo@example.com\nContraseña: demo123',
                         style: TextStyle(
                           color: Colors.blue[600],
                           fontSize: 12,
