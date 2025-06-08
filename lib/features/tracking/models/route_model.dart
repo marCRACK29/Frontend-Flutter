@@ -2,8 +2,8 @@ import 'package:latlong2/latlong.dart';
 
 class RouteResponse {
   final List<LatLng> coordinates;
-  final double distance;
-  final double duration;
+  final double distance; // en metros
+  final double duration; // en segundos
 
   RouteResponse({
     required this.coordinates,
@@ -19,7 +19,7 @@ class RouteResponse {
 
     final route = routes[0];
     final geometry = route['geometry'];
-    
+
     // Decode polyline coordinates
     final coordinates = <LatLng>[];
     if (geometry is List) {

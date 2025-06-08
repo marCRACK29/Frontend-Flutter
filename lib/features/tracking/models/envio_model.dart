@@ -19,7 +19,7 @@ class Envio {
 
   factory Envio.fromJson(Map<String, dynamic> json) {
     return Envio(
-      id: json['id'] ?? 0,
+      id: json['id_envio'] ?? 0,
       remitenteId: json['remitente_id'] ?? '',
       receptorId: json['receptor_id'],
       conductorId: json['conductor_id'] ?? '',

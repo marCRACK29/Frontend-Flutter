@@ -47,17 +47,21 @@ class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
     try {
       // Obtener ubicación actual
       _currentLocation = await LocationService.getCurrentLocation();
-      
+
       // Obtener envíos disponibles
-      _availableEnvios = await EnvioService.getEnviosByConductor(widget.conductorId);
-      
+      _availableEnvios = await EnvioService.getEnviosByConductor(
+        widget.conductorId,
+      );
+
       // Si hay envíos, seleccionar el primero automáticamente
       if (_availableEnvios.isNotEmpty) {
         await _selectEnvio(_availableEnvios.first);
       }
-      
+
       // Escuchar actualizaciones de ubicación
-      _locationSubscription = LocationService.getLocationStream().listen((location) {
+      _locationSubscription = LocationService.getLocationStream().listen((
+        location,
+      ) {
         if (mounted) {
           setState(() {
             _currentLocation = location;
@@ -65,7 +69,6 @@ class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
           _updateRoute(); // Actualizar ruta cuando cambie la ubicación
         }
       });
-      
     } catch (e) {
       if (mounted) {
         setState(() {
@@ -78,22 +81,21 @@ class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
 
   Future<void> _selectEnvio(Envio envio) async {
     setState(() => _isLoading = true);
-    
+
     try {
       _selectedEnvio = envio;
-      
+
       // Obtener coordenadas del destino
       _destinationLocation = await GeocodingService.getCoordinatesFromAddress(
         envio.direccionDestino,
       );
-      
+
       if (_destinationLocation == null) {
         throw Exception('No se pudo encontrar la dirección');
       }
-      
+
       // Obtener ruta
       await _updateRoute();
-      
     } catch (e) {
       if (mounted) {
         setState(() => _errorMessage = 'Error: $e');
@@ -108,7 +110,10 @@ class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
   Future<void> _updateRoute() async {
     if (_currentLocation != null && _destinationLocation != null) {
       try {
-        _route = await RoutingService.getRoute(_currentLocation!, _destinationLocation!);
+        _route = await RoutingService.getRoute(
+          _currentLocation!,
+          _destinationLocation!,
+        );
         if (mounted) setState(() {});
       } catch (e) {
         debugPrint('Error actualizando ruta: $e');
@@ -136,24 +141,29 @@ class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
                   labelText: 'Seleccionar Envío',
                   border: OutlineInputBorder(),
                 ),
-                items: _availableEnvios.map((envio) {
-                  return DropdownMenuItem(
-                    value: envio,
-                    child: Text('Envío #${envio.id} - ${envio.direccionDestino}'),
-                  );
-                }).toList(),
-                onChanged: _isLoading ? null : (envio) {
-                  if (envio != null) _selectEnvio(envio);
-                },
+                items:
+                    _availableEnvios.map((envio) {
+                      return DropdownMenuItem(
+                        value: envio,
+                        child: Text(
+                          'Envío #${envio.id} - ${envio.direccionDestino}',
+                        ),
+                      );
+                    }).toList(),
+                onChanged:
+                    _isLoading
+                        ? null
+                        : (envio) {
+                          if (envio != null) _selectEnvio(envio);
+                        },
               ),
             ),
-          
+
           // Mapa
           Expanded(child: _buildMap()),
-          
+
           // Información de la ruta
-          if (_selectedEnvio != null && _route != null)
-            _buildRouteInfo(),
+          if (_selectedEnvio != null && _route != null) _buildRouteInfo(),
         ],
       ),
     );
@@ -213,10 +223,13 @@ class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
     // Calcular el centro del mapa
     LatLng mapCenter = _currentLocation!;
     double zoom = 15.0;
-    
+
     if (_destinationLocation != null) {
       // Si tenemos destino, centrar entre origen y destino
-      final bounds = LatLngBounds.fromPoints([_currentLocation!, _destinationLocation!]);
+      final bounds = LatLngBounds.fromPoints([
+        _currentLocation!,
+        _destinationLocation!,
+      ]);
       mapCenter = bounds.center;
       zoom = 13.0;
     }
@@ -304,7 +317,7 @@ class _ConductorTrackingScreenState extends State<ConductorTrackingScreen> {
           BoxShadow(
             offset: const Offset(0, -2),
             blurRadius: 4,
-            color: Colors.black.withOpacity(0.1),
+            color: Colors.black.withAlpha(26),
           ),
         ],
       ),
