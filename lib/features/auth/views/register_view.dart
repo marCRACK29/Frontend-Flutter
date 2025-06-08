@@ -143,7 +143,13 @@ class _RegisterViewState extends State<RegisterView> {
       final success = await authProvider.register(
         _emailController.text.trim(),
         _passwordController.text,
-        name: _nameController.text.trim(),
+        '12345678-9', // RUT temporal
+        _nameController.text.trim(),
+        0, // numero_domicilio temporal
+        '', // calle temporal
+        '', // ciudad temporal
+        '', // region temporal
+        0, // codigo_postal temporal
       );
 
       if (success && mounted) {

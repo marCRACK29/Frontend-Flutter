@@ -49,11 +49,7 @@ class AuthProvider extends ChangeNotifier {
     _clearError();
 
     try {
-      final request = LoginRequest(
-        email: email,
-        password: password,
-        rememberMe: rememberMe,
-      );
+      final request = LoginRequest(email: email, password: password);
 
       final response = await _authService.login(request);
 
@@ -61,8 +57,8 @@ class AuthProvider extends ChangeNotifier {
       await _storage.saveLoginSession(
         token: response.accessToken,
         refreshToken: response.refreshToken,
-        userId: response.user.id,
-        email: response.user.email,
+        userId: response.user.rut,
+        email: response.user.correo,
       );
 
       _user = response.user;
@@ -80,19 +76,29 @@ class AuthProvider extends ChangeNotifier {
   // Register
   Future<bool> register(
     String email,
-    String password, {
-    String? name,
-    String? phone,
-  }) async {
+    String password,
+    String rut,
+    String nombre,
+    int numero_domicilio,
+    String calle,
+    String ciudad,
+    String region,
+    int codigo_postal,
+  ) async {
     _setLoading(true);
     _clearError();
 
     try {
       final request = RegisterRequest(
-        email: email,
-        password: password,
-        name: name,
-        phone: phone,
+        rut: rut,
+        nombre: nombre,
+        correo: email,
+        contrasena: password,
+        numero_domicilio: numero_domicilio,
+        calle: calle,
+        ciudad: ciudad,
+        region: region,
+        codigo_postal: codigo_postal,
       );
 
       final response = await _authService.register(request);
@@ -101,8 +107,8 @@ class AuthProvider extends ChangeNotifier {
       await _storage.saveLoginSession(
         token: response.accessToken,
         refreshToken: response.refreshToken,
-        userId: response.user.id,
-        email: response.user.email,
+        userId: response.user.rut,
+        email: response.user.correo,
       );
 
       _user = response.user;
@@ -195,7 +201,17 @@ class AuthProvider extends ChangeNotifier {
     final email = await _storage.getUserEmail();
 
     if (userId != null && email != null) {
-      _user = User(id: userId, email: email);
+      _user = User(
+        rut: userId,
+        nombre: '', // Temporal
+        correo: email,
+        tipo: 'cliente', // Temporal
+        numero_domicilio: 0, // Temporal
+        calle: '', // Temporal
+        ciudad: '', // Temporal
+        region: '', // Temporal
+        codigo_postal: 0, // Temporal
+      );
       // Optionally load full profile from API
       try {
         await loadProfile();

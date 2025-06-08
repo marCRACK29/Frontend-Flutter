@@ -1,186 +1,125 @@
-
-enum UserKind {
-  client,
-  delivery,
-}
-
+// user_model.dart
 class User {
-  final String id;
-  final String email;
-  final String? name;
-  final String? phone;
-  final DateTime? createdAt;
-  final DateTime? lastLogin;
-  final bool isActive;
-  final UserKind kind;
+  final String rut;
+  final String nombre;
+  final String correo;
+  final String tipo;
+  final int? numero_domicilio;
+  final String? calle;
+  final String? ciudad;
+  final String? region;
+  final int? codigo_postal;
 
   User({
-    required this.id,
-    required this.email,
-    this.name,
-    this.phone,
-    this.createdAt,
-    this.lastLogin,
-    this.isActive = true,
-    this.kind = UserKind.client,
+    required this.rut,
+    required this.nombre,
+    required this.correo,
+    required this.tipo,
+    this.numero_domicilio,
+    this.calle,
+    this.ciudad,
+    this.region,
+    this.codigo_postal,
   });
-  
-  
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id']?.toString() ?? '',
-      email: json['email'] ?? '',
-      name: json['name'],
-      phone: json['phone'],
-      createdAt: json['created_at'] != null 
-          ? DateTime.parse(json['created_at']) 
-          : null,
-      lastLogin: json['last_login'] != null 
-          ? DateTime.parse(json['last_login']) 
-          : null,
-      isActive: json['is_active'] ?? true,
-       kind: _parseUserKind(json['kind']),
+      rut: json['id'] ?? json['rut'] ?? '',
+      nombre: json['name'] ?? json['nombre'] ?? '',
+      correo: json['email'] ?? json['correo'] ?? '',
+      tipo: json['tipo'] ?? 'cliente',
+      numero_domicilio: json['direccion']?['numero_domicilio'],
+      calle: json['direccion']?['calle'],
+      ciudad: json['direccion']?['ciudad'],
+      region: json['direccion']?['region'],
+      codigo_postal: json['direccion']?['codigo_postal'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'id': id,
-      'email': email,
-      'name': name,
-      'phone': phone,
-      'created_at': createdAt?.toIso8601String(),
-      'last_login': lastLogin?.toIso8601String(),
-      'is_active': isActive,
-      'kind': kind.name,
+      'rut': rut,
+      'nombre': nombre,
+      'correo': correo,
+      'tipo': tipo,
+      'numero_domicilio': numero_domicilio,
+      'calle': calle,
+      'ciudad': ciudad,
+      'region': region,
+      'codigo_postal': codigo_postal,
     };
   }
-
-  User copyWith({
-    String? id,
-    String? email,
-    String? name,
-    String? phone,
-    DateTime? createdAt,
-    DateTime? lastLogin,
-    bool? isActive,
-    UserKind? kind,
-  }) {
-    return User(
-      id: id ?? this.id,
-      email: email ?? this.email,
-      name: name ?? this.name,
-      phone: phone ?? this.phone,
-      createdAt: createdAt ?? this.createdAt,
-      lastLogin: lastLogin ?? this.lastLogin,
-      isActive: isActive ?? this.isActive,
-      kind: kind ?? this.kind,
-    );
-  }
-
-  @override
-  String toString() {
-    return 'User(id: $id, email: $email, name: $name, kind: ${kind.name})';
-  }
-  static UserKind _parseUserKind(dynamic value) {
-    if (value == null) return UserKind.client;
-    
-    try {
-      return UserKind.values.firstWhere(
-        (kind) => kind.name == value.toString().toLowerCase(),
-        orElse: () => UserKind.client,
-      );
-    } catch (e) {
-      return UserKind.client;
-    }
-  }
-
-  @override
-  bool operator ==(Object other) {
-    if (identical(this, other)) return true;
-    return other is User && other.id == id;
-  }
-
-  @override
-  int get hashCode => id.hashCode;
 }
 
 class LoginRequest {
   final String email;
-  final String password; 
-  final bool rememberMe;
+  final String password;
 
-  LoginRequest({
-    required this.email,
-    required this.password,
-    this.rememberMe = false,
-  });
+  LoginRequest({required this.email, required this.password});
 
   Map<String, dynamic> toJson() {
-    return {
-      'email': email,
-      'password': password,
-      'remember_me': rememberMe,
-    };
+    return {'email': email, 'password': password};
   }
 }
 
 class RegisterRequest {
-  final String email;
-  final String password;
-  final String? name;
-  final String? phone;
+  final String rut;
+  final String nombre;
+  final String correo;
+  final String contrasena;
+  final int numero_domicilio;
+  final String calle;
+  final String ciudad;
+  final String region;
+  final int codigo_postal;
 
   RegisterRequest({
-    required this.email,
-    required this.password,
-    this.name,
-    this.phone,
+    required this.rut,
+    required this.nombre,
+    required this.correo,
+    required this.contrasena,
+    required this.numero_domicilio,
+    required this.calle,
+    required this.ciudad,
+    required this.region,
+    required this.codigo_postal,
   });
 
   Map<String, dynamic> toJson() {
     return {
-      'email': email,
-      'password': password,
-      'name': name,
-      'phone': phone,
+      'RUT': rut,
+      'nombre': nombre,
+      'correo': correo,
+      'contrasena': contrasena,
+      'numero_domicilio': numero_domicilio,
+      'calle': calle,
+      'ciudad': ciudad,
+      'region': region,
+      'codigo_postal': codigo_postal,
     };
   }
 }
 
 class AuthResponse {
-  final String accessToken;
-  final String refreshToken;
+  final String message;
+  final String token;
   final User user;
-  final String tokenType;
-  final int expiresIn;
 
   AuthResponse({
-    required this.accessToken,
-    required this.refreshToken,
+    required this.message,
+    required this.token,
     required this.user,
-    this.tokenType = 'Bearer',
-    this.expiresIn = 3600,
   });
 
   factory AuthResponse.fromJson(Map<String, dynamic> json) {
     return AuthResponse(
-      accessToken: json['access_token'] ?? '',
-      refreshToken: json['refresh_token'] ?? '',
-      user: User.fromJson(json['user'] ?? {}),
-      tokenType: json['token_type'] ?? 'Bearer',
-      expiresIn: json['expires_in'] ?? 3600,
+      message: json['message'] ?? json['mensaje'] ?? '',
+      token: json['token'] ?? '',
+      user: User.fromJson(json['user'] ?? json['usuario'] ?? {}),
     );
   }
 
-  Map<String, dynamic> toJson() {
-    return {
-      'access_token': accessToken,
-      'refresh_token': refreshToken,
-      'user': user.toJson(),
-      'token_type': tokenType,
-      'expires_in': expiresIn,
-    };
-  }
+  // Para compatibilidad con tu provider actual
+  String get accessToken => token;
+  String get refreshToken => token; // Usar el mismo token como refresh
 }
