@@ -40,7 +40,8 @@ class _DeliveryDetailViewState extends State<DeliveryDetailView> {
   Widget build(BuildContext context) {
     final envio = widget.envio;
     return Scaffold(
-      appBar: AppBar(title: Text('Detalles del Envío')),
+      appBar: AppBar(title: Text('Detalles del Envío'),backgroundColor: Colors.indigo,
+  foregroundColor: Colors.white,),
       body: Padding(
         padding: const EdgeInsets.all(24.0),
         child: ListView(

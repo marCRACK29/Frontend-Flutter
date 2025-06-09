@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/envio_model.dart';
 import '../services/delivery_service.dart';
 import 'delivery_detail_view.dart';
+import 'package:frontend/features/auth/services/auth_service.dart';
 
 class DeliveryListView extends StatefulWidget {
   @override
@@ -14,28 +15,41 @@ class _DeliveryListViewState extends State<DeliveryListView> {
   @override
   void initState() {
     super.initState();
-    // Cambia el conductorId por el que corresponda en tu sistema real
-    _deliveries = DeliveryService().obtenerEnviosPorConductor("15.123.102-4");
+    _loadDeliveries();
+  }
+
+  Future<void> _loadDeliveries() async {
+    final userInfo = await AuthService.getUserInfo();
+    final conductorId = userInfo['id'];
+    if (conductorId != null) {
+      setState(() {
+        _deliveries = DeliveryService().obtenerEnviosPorConductor(conductorId);
+      });
+    }
   }
 
   @override
-    Widget build(BuildContext context) {
-      return Scaffold(
-        appBar: AppBar(
-                title: Text('Envíos Asignados'),
-                backgroundColor: Colors.indigo,
-                foregroundColor: Colors.white, // Para que el texto salga blanco
-              ),
-        body: FutureBuilder<List<EnvioModel>>(
-          future: _deliveries,
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return Center(child: CircularProgressIndicator());
-            } else if (snapshot.hasError) {
-              return Center(child: Text('Error: ${snapshot.error}'));
-            } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-              return Center(child: Text('No hay envíos asignados'));
-            }
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Envíos Asignados'),
+        backgroundColor: Colors.indigo,
+        foregroundColor: Colors.white,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+        ),
+      ),
+      body: FutureBuilder<List<EnvioModel>>(
+        future: _deliveries,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Error: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(child: Text('No hay envíos asignados'));
+          }
 
             final deliveries = snapshot.data!;
             return ListView.builder(
