@@ -8,7 +8,6 @@ import 'package:frontend/shared/test_connection_screen.dart';
 
 import 'features/auth/views/login_screen.dart';
 import 'features/auth/views/welcome_screen.dart';
-import 'features/auth/views/profile_screen.dart';
 import 'features/auth/services/auth_service.dart'; 
 
 void main() async {
