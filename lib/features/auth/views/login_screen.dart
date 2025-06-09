@@ -38,10 +38,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
       if (result['success']) {
         _showMessage(result['message']);
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => WelcomeScreen()),
-        );
+        Navigator.pushReplacementNamed(context, '/home');
       } else {
         _showMessage(result['message']);
       }

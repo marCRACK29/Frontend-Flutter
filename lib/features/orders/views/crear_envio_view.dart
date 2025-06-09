@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/envio_model.dart';
 import '../services/envio_service.dart';
+import 'package:frontend/features/auth/services/auth_service.dart';
 
 class CrearEnvioScreen extends StatefulWidget {
   const CrearEnvioScreen({super.key});
@@ -16,26 +17,39 @@ class _CrearEnvioScreenState extends State<CrearEnvioScreen> {
   final _destinoController = TextEditingController();
 
   final EnvioService envioService = EnvioService();
+  String? remitenteId;
 
-  // Valores fijos
-  final String remitenteId = "21.595.452-3";
-  final String conductorId = "15.123.102-4";
+  @override
+  void initState() {
+    super.initState();
+    _loadUserInfo();
+  }
+
+  Future<void> _loadUserInfo() async {
+    final userInfo = await AuthService.getUserInfo();
+    setState(() {
+      remitenteId = userInfo['id'];
+    });
+  }
 
   void _submit() async {
     if (_formKey.currentState!.validate()) {
       try {
         final envio = Envio(
-          remitenteId: remitenteId,
+          remitenteId: remitenteId!,
           receptorId: _receptorController.text,
-          conductorId: conductorId,
+          conductorId: "15.123.102-4",
           direccionOrigen: _origenController.text,
           direccionDestino: _destinoController.text,
         );
 
         final respuesta = await envioService.crearEnvio(envio);
+        if (!mounted) return;
+        
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Envío creado: ID ${respuesta["envío"]["id"]}')),
         );
+        Navigator.pop(context); // Regresa a la pantalla anterior después de crear el envío
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Error: $e')),
@@ -55,6 +69,10 @@ class _CrearEnvioScreenState extends State<CrearEnvioScreen> {
           style: TextStyle(color: Colors.white),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pop(context),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -62,6 +80,14 @@ class _CrearEnvioScreenState extends State<CrearEnvioScreen> {
           key: _formKey,
           child: Column(
             children: [
+              if (remitenteId != null)
+                Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  child: Text(
+                    'Remitente: $remitenteId',
+                    style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                  ),
+                ),
               TextFormField(
                 controller: _receptorController,
                 decoration: const InputDecoration(labelText: "Receptor ID"),
@@ -87,5 +113,13 @@ class _CrearEnvioScreenState extends State<CrearEnvioScreen> {
         ),
       ),
     );
+  }
+
+  @override
+  void dispose() {
+    _receptorController.dispose();
+    _origenController.dispose();
+    _destinoController.dispose();
+    super.dispose();
   }
 }

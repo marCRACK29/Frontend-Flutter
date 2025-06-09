@@ -17,6 +17,10 @@ class OpenStreetMapView extends StatelessWidget {
         foregroundColor: Colors.white,
         title: const Text('OpenStreetMap'),
         backgroundColor: Colors.blue,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+        ),
       ),
       body: Stack(
         children: [

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:frontend/features/orders/services/envio_service.dart';
 import 'package:frontend/features/orders/views/crear_envio_view.dart';
 import 'package:frontend/features/orders/views/historial_envios_view.dart';
-
+import 'package:frontend/features/auth/services/auth_service.dart';
 
 class OrdersHomeView extends StatefulWidget {
   const OrdersHomeView({super.key});
@@ -15,23 +15,32 @@ class _OrdersHomeViewState extends State<OrdersHomeView> {
   final envioService = EnvioService();
 
   Future<void> _verHistorial() async {
-  try {
-    String usuarioId = '21.595.452-3'; // Reemplaza con el usuario logueado
-    final envios = await envioService.obtenerEnviosPorUsuario(usuarioId);
-    if (!mounted) return; // Verifica que el widget esté montado
+    try {
+      final userInfo = await AuthService.getUserInfo();
+      final usuarioId = userInfo['id'];
+      
+      if (usuarioId == null) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('No se encontró el RUT del usuario')),
+        );
+        return;
+      }
 
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => HistorialEnviosView(envios: envios),
-      ),
-    );
-  } catch (e) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Error: $e')),
-    );
+      final envios = await envioService.obtenerEnviosPorUsuario(usuarioId);
+      if (!mounted) return;
+
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => HistorialEnviosView(envios: envios),
+        ),
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Error: $e')),
+      );
+    }
   }
-}
 
   @override
   Widget build(BuildContext context) {
@@ -44,8 +53,11 @@ class _OrdersHomeViewState extends State<OrdersHomeView> {
           style: TextStyle(color: Colors.white),
         ),
         iconTheme: const IconThemeData(color: Colors.white),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => Navigator.pushReplacementNamed(context, '/home'),
+        ),
       ),
-
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,

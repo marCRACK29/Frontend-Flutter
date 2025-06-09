@@ -54,48 +54,96 @@ class MyApp extends StatelessWidget {
     );
   }
 }
+
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
-
-  Future<String?> _getRutCliente() async {
-    // TODO: Implementar autenticación real
-    // Por ahora, retornamos un RUT de prueba
-    // Este RUT debe existir en la base de datos para que funcione correctamente
-    return '21.595.452-3'; // RUT de prueba - Reemplazar con el RUT de un cliente existente en la base de datos
-
-    // Código original que se usará cuando se implemente la autenticación:
-    // const storage = FlutterSecureStorage();
-    // return await storage.read(key: 'rut_cliente');
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Menú de Navegación')),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/map');
-              },
-              child: const Text('Ir al Mapa'),
+      body: FutureBuilder<Map<String, String?>>(
+        future: AuthService.getUserInfo(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          if (!snapshot.hasData) {
+            return const Center(child: Text('Error al cargar la información del usuario'));
+          }
+
+          final userInfo = snapshot.data!;
+          final userType = userInfo['tipo'];
+
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                if (userType == 'cliente') ...[
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/map');
+                    },
+                    child: const Text('Ir al Mapa'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/orders');
+                    },
+                    child: const Text('Órdenes'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () async {
+                      final rutCliente = userInfo['id'];
+                      if (rutCliente != null) {
+                        Navigator.pushNamed(
+                          context,
+                          '/profile',
+                          arguments: rutCliente,
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('No se encontró el RUT del cliente'),
+                          ),
+                        );
+                      }
+                    },
+                    child: const Text('Mi Perfil'),
+                  ),
+                ] else if (userType == 'conductor') ...[
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/delivery');
+                    },
+                    child: const Text('Delivery'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/map');
+                    },
+                    child: const Text('Ir al Mapa'),
+                  ),
+                ],
+                // Botones comunes para ambos tipos de usuario
+                ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushNamed(context, '/test');
+                  },
+                  child: const Text('Probar conexión Backend'),
+                ),
+                ElevatedButton(
+                  onPressed: () async {
+                    await AuthService.logout();
+                    Navigator.pushReplacementNamed(context, '/login');
+                  },
+                  child: const Text('Cerrar Sesión'),
+                ),
+              ],
             ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/test');
-              },
-              child: const Text('Probar conexión Backend'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushReplacementNamed(context, '/login');
-              },
-              child: const Text('Iniciar Sesión'),
-            ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }
@@ -143,37 +191,6 @@ class _SplashScreenState extends State<SplashScreen> {
             ),
             SizedBox(height: 20),
             CircularProgressIndicator(),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/orders');
-              },
-              child: const Text('Ordenes'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/delivery');
-              },
-              child: const Text('Delivery'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final rutCliente = await _getRutCliente();
-                if (rutCliente != null) {
-                  Navigator.pushNamed(
-                    context,
-                    '/profile',
-                    arguments: rutCliente,
-                  );
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('No se encontró el RUT del cliente'),
-                    ),
-                  );
-                }
-              },
-              child: const Text('Mi Perfil'),
-            ),
           ],
         ),
       ),
