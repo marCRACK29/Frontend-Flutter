@@ -4,23 +4,27 @@ import '../models/user_model.dart';
 import '../../../core/storage/secure_storage.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+
 class AuthService {
   static String get baseUrl => dotenv.env['API_URL']!;
   final SecureStorage _storage = SecureStorage.instance;
 
-  static Future<Map<String, dynamic>> loginCliente(String email, String password) async {
+  static Future<Map<String, dynamic>> loginCliente(
+    String email,
+    String password,
+  ) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/auth'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({
-          'email': email,
-          'password': password,
-        }),
+        Uri.parse('$baseUrl/api/auth/login'),
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          },
+        body: jsonEncode({'email': email, 'password': password}),
       );
 
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 200) {
         // Guardar token
         await _saveToken(data['token']);
@@ -47,8 +51,11 @@ class AuthService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$baseUrl/auth/register/cliente'),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse('$baseUrl/api/auth/register/cliente'),
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+          },
         body: jsonEncode({
           'RUT': rut,
           'nombre': nombre,
@@ -63,11 +70,14 @@ class AuthService {
       );
 
       final data = jsonDecode(response.body);
-      
+
       if (response.statusCode == 201) {
         return {'success': true, 'message': 'Cliente registrado exitosamente'};
       } else {
-        return {'success': false, 'message': data['error'] ?? 'Error de registro'};
+        return {
+          'success': false,
+          'message': data['error'] ?? 'Error de registro',
+        };
       }
     } catch (e) {
       return {'success': false, 'message': 'Error de conexión'};

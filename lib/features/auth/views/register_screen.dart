@@ -1,30 +1,190 @@
-// lib/features/auth/presentation/screens/register_screen.dart
+// lib/features/auth/screens/register_screen.dart
 import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import '../cubit/auth_cubit.dart';
+import '../services/auth_service.dart';
 
 class RegisterScreen extends StatefulWidget {
-  const RegisterScreen({Key? key}) : super(key: key);
-
   @override
-  State<RegisterScreen> createState() => _RegisterScreenState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
 class _RegisterScreenState extends State<RegisterScreen> {
-  final _formKey = GlobalKey<FormState>();
   final _rutController = TextEditingController();
   final _nombreController = TextEditingController();
   final _correoController = TextEditingController();
   final _contrasenaController = TextEditingController();
-  final _confirmarContrasenaController = TextEditingController();
   final _numeroDomicilioController = TextEditingController();
   final _calleController = TextEditingController();
   final _ciudadController = TextEditingController();
   final _regionController = TextEditingController();
   final _codigoPostalController = TextEditingController();
+  bool _isLoading = false;
 
-  bool _obscurePassword = true;
-  bool _obscureConfirmPassword = true;
+  Future<void> _register() async {
+    if (_rutController.text.isEmpty ||
+        _nombreController.text.isEmpty ||
+        _correoController.text.isEmpty ||
+        _contrasenaController.text.isEmpty ||
+        _numeroDomicilioController.text.isEmpty ||
+        _calleController.text.isEmpty ||
+        _ciudadController.text.isEmpty ||
+        _regionController.text.isEmpty ||
+        _codigoPostalController.text.isEmpty) {
+      _showMessage('Por favor completa todos los campos');
+      return;
+    }
+
+    setState(() => _isLoading = true);
+
+    final result = await AuthService.registrarCliente(
+      rut: _rutController.text.trim(),
+      nombre: _nombreController.text.trim(),
+      correo: _correoController.text.trim(),
+      contrasena: _contrasenaController.text,
+      numeroDomicilio: int.parse(_numeroDomicilioController.text),
+      calle: _calleController.text.trim(),
+      ciudad: _ciudadController.text.trim(),
+      region: _regionController.text.trim(),
+      codigoPostal: int.parse(_codigoPostalController.text),
+    );
+
+    setState(() => _isLoading = false);
+
+    _showMessage(result['message']);
+
+    if (result['success']) {
+      Navigator.pop(context); // Volver al login
+    }
+  }
+
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text(message)),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: Text('Registrarse'),
+        backgroundColor: Colors.green,
+      ),
+      body: SingleChildScrollView(
+        padding: EdgeInsets.all(20),
+        child: Column(
+          children: [
+            Icon(
+              Icons.person_add_outlined,
+              size: 60,
+              color: Colors.green,
+            ),
+            SizedBox(height: 20),
+            TextField(
+              controller: _rutController,
+              decoration: InputDecoration(
+                labelText: 'RUT',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.badge),
+              ),
+            ),
+            SizedBox(height: 15),
+            TextField(
+              controller: _nombreController,
+              decoration: InputDecoration(
+                labelText: 'Nombre completo',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.person),
+              ),
+            ),
+            SizedBox(height: 15),
+            TextField(
+              controller: _correoController,
+              decoration: InputDecoration(
+                labelText: 'Correo electrónico',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.email),
+              ),
+              keyboardType: TextInputType.emailAddress,
+            ),
+            SizedBox(height: 15),
+            TextField(
+              controller: _contrasenaController,
+              decoration: InputDecoration(
+                labelText: 'Contraseña',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.lock),
+              ),
+              obscureText: true,
+            ),
+            SizedBox(height: 15),
+            TextField(
+              controller: _numeroDomicilioController,
+              decoration: InputDecoration(
+                labelText: 'Número domicilio',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.home),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: 15),
+            TextField(
+              controller: _calleController,
+              decoration: InputDecoration(
+                labelText: 'Calle',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.location_on),
+              ),
+            ),
+            SizedBox(height: 15),
+            TextField(
+              controller: _ciudadController,
+              decoration: InputDecoration(
+                labelText: 'Ciudad',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.location_city),
+              ),
+            ),
+            SizedBox(height: 15),
+            TextField(
+              controller: _regionController,
+              decoration: InputDecoration(
+                labelText: 'Región',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.map),
+              ),
+            ),
+            SizedBox(height: 15),
+            TextField(
+              controller: _codigoPostalController,
+              decoration: InputDecoration(
+                labelText: 'Código postal',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.local_post_office),
+              ),
+              keyboardType: TextInputType.number,
+            ),
+            SizedBox(height: 30),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton(
+                onPressed: _isLoading ? null : _register,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                ),
+                child: _isLoading
+                    ? CircularProgressIndicator(color: Colors.white)
+                    : Text(
+                        'Registrarse',
+                        style: TextStyle(fontSize: 18, color: Colors.white),
+                      ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   @override
   void dispose() {
@@ -32,298 +192,11 @@ class _RegisterScreenState extends State<RegisterScreen> {
     _nombreController.dispose();
     _correoController.dispose();
     _contrasenaController.dispose();
-    _confirmarContrasenaController.dispose();
     _numeroDomicilioController.dispose();
     _calleController.dispose();
     _ciudadController.dispose();
     _regionController.dispose();
     _codigoPostalController.dispose();
     super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Registro de Cliente'),
-        centerTitle: true,
-      ),
-      body: BlocListener<AuthCubit, AuthState>(
-        listener: (context, state) {
-          if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
-            );
-          } else if (state is AuthRegistered) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('Cliente registrado exitosamente'),
-                backgroundColor: Colors.green,
-              ),
-            );
-            Navigator.of(context).pop();
-          }
-        },
-        child: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                const Text(
-                  'Información Personal',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _rutController,
-                  decoration: const InputDecoration(
-                    labelText: 'RUT',
-                    prefixIcon: Icon(Icons.badge),
-                    border: OutlineInputBorder(),
-                    hintText: '12345678-9',
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa tu RUT';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _nombreController,
-                  decoration: const InputDecoration(
-                    labelText: 'Nombre completo',
-                    prefixIcon: Icon(Icons.person),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa tu nombre';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _correoController,
-                  keyboardType: TextInputType.emailAddress,
-                  decoration: const InputDecoration(
-                    labelText: 'Correo electrónico',
-                    prefixIcon: Icon(Icons.email),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa tu correo';
-                    }
-                    if (!RegExp(
-                      r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
-                    ).hasMatch(value)) {
-                      return 'Por favor ingresa un correo válido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _contrasenaController,
-                  obscureText: _obscurePassword,
-                  decoration: InputDecoration(
-                    labelText: 'Contraseña',
-                    prefixIcon: const Icon(Icons.lock),
-                    border: const OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscurePassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscurePassword = !_obscurePassword;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa tu contraseña';
-                    }
-                    if (value.length < 6) {
-                      return 'La contraseña debe tener al menos 6 caracteres';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _confirmarContrasenaController,
-                  obscureText: _obscureConfirmPassword,
-                  decoration: InputDecoration(
-                    labelText: 'Confirmar contraseña',
-                    prefixIcon: const Icon(Icons.lock_outline),
-                    border: const OutlineInputBorder(),
-                    suffixIcon: IconButton(
-                      icon: Icon(
-                        _obscureConfirmPassword
-                            ? Icons.visibility
-                            : Icons.visibility_off,
-                      ),
-                      onPressed: () {
-                        setState(() {
-                          _obscureConfirmPassword = !_obscureConfirmPassword;
-                        });
-                      },
-                    ),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor confirma tu contraseña';
-                    }
-                    if (value != _contrasenaController.text) {
-                      return 'Las contraseñas no coinciden';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 24),
-                const Text(
-                  'Dirección',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _calleController,
-                  decoration: const InputDecoration(
-                    labelText: 'Calle',
-                    prefixIcon: Icon(Icons.location_on),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa la calle';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _numeroDomicilioController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Número de domicilio',
-                    prefixIcon: Icon(Icons.numbers),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa el número de domicilio';
-                    }
-                    if (int.tryParse(value) == null) {
-                      return 'Por favor ingresa un número válido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _ciudadController,
-                  decoration: const InputDecoration(
-                    labelText: 'Ciudad',
-                    prefixIcon: Icon(Icons.location_city),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa la ciudad';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _regionController,
-                  decoration: const InputDecoration(
-                    labelText: 'Región',
-                    prefixIcon: Icon(Icons.map),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa la región';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 16),
-                TextFormField(
-                  controller: _codigoPostalController,
-                  keyboardType: TextInputType.number,
-                  decoration: const InputDecoration(
-                    labelText: 'Código Postal',
-                    prefixIcon: Icon(Icons.local_post_office),
-                    border: OutlineInputBorder(),
-                  ),
-                  validator: (value) {
-                    if (value == null || value.isEmpty) {
-                      return 'Por favor ingresa el código postal';
-                    }
-                    if (int.tryParse(value) == null) {
-                      return 'Por favor ingresa un código postal válido';
-                    }
-                    return null;
-                  },
-                ),
-                const SizedBox(height: 32),
-                BlocBuilder<AuthCubit, AuthState>(
-                  builder: (context, state) {
-                    return ElevatedButton(
-                      onPressed:
-                          state is AuthLoading
-                              ? null
-                              : () {
-                                if (_formKey.currentState!.validate()) {
-                                  context.read<AuthCubit>().registerCliente(
-                                    rut: _rutController.text,
-                                    nombre: _nombreController.text,
-                                    correo: _correoController.text,
-                                    contrasena: _contrasenaController.text,
-                                    numeroDomicilio: int.parse(
-                                      _numeroDomicilioController.text,
-                                    ),
-                                    calle: _calleController.text,
-                                    ciudad: _ciudadController.text,
-                                    region: _regionController.text,
-                                    codigoPostal: int.parse(
-                                      _codigoPostalController.text,
-                                    ),
-                                  );
-                                }
-                              },
-                      style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child:
-                          state is AuthLoading
-                              ? const CircularProgressIndicator()
-                              : const Text('Registrarse'),
-                    );
-                  },
-                ),
-              ],
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
