@@ -1,17 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:provider/provider.dart';
-
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:frontend/features/maps/providers/map_provider.dart';
 import 'package:frontend/features/maps/views/openstreetmap_view.dart';
-import 'package:provider/provider.dart';
 import 'package:frontend/shared/test_connection_screen.dart';
-
 import 'features/auth/views/login_screen.dart';
 import 'features/auth/views/welcome_screen.dart';
 import 'features/auth/services/auth_service.dart'; 
-import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'features/delivery/views/delivery_list_view.dart';
 import 'package:frontend/features/orders/views/orders_home_view.dart';
 import 'package:frontend/features/tracking/views/conductor_tracking_screen.dart';
@@ -48,9 +43,6 @@ class MyApp extends StatelessWidget {
         '/login': (context) => LoginScreen(),
         '/welcome': (context) =>  WelcomeScreen(),
         '/orders': (context) => const OrdersHomeView(), // Pantalla para el menu de ordenes
-        '/': (context) => const HomeScreen(),
-        '/map': (context) => const OpenStreetMapView(),
-        '/test': (context) => TestConnectionScreen(),
         '/tracking':
             (context) => ConductorTrackingScreen(conductorId: '15.123.102-4'),
         '/delivery': (context) => DeliveryListView(),
@@ -58,7 +50,6 @@ class MyApp extends StatelessWidget {
           final rutCliente = ModalRoute.of(context)!.settings.arguments as String;
           return ProfileScreen(rutCliente: rutCliente);
         },
-        '/orders': (context) => const OrdersHomeView(),
       },
     );
   }
@@ -133,6 +124,12 @@ class HomeScreen extends StatelessWidget {
                       Navigator.pushNamed(context, '/map');
                     },
                     child: const Text('Ir al Mapa'),
+                  ),
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/tracking');
+                    },
+                    child: const Text('Ruta de envíos'),
                   ),
                 ],
                 // Botones comunes para ambos tipos de usuario
