@@ -1,14 +1,15 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 import '../models/cliente_model.dart';
-
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 class ClienteService {
-  final String baseUrl = 'http://localhost:5000/api'; // Ajusta según tu configuración
+  static String get baseUrl => dotenv.env['API_URL']!; // Ajusta según tu configuración
 
   Future<Cliente> obtenerInfoCliente(String rut) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/cliente/info?rut_cliente=$rut'),
+        Uri.parse('$baseUrl/api/cliente/info?rut_cliente=$rut'),
+        headers: {'Content-Type': 'application/json','ngrok-skip-browser-warning': 'true'},
       );
 
       if (response.statusCode == 200) {
@@ -24,8 +25,8 @@ class ClienteService {
   Future<Cliente> actualizarCorreo(String rut, String nuevoCorreo) async {
     try {
       final response = await http.put(
-        Uri.parse('$baseUrl/cliente/correo'),
-        headers: {'Content-Type': 'application/json'},
+        Uri.parse('$baseUrl/api/cliente/correo'),
+        headers: {'Content-Type': 'application/json','ngrok-skip-browser-warning': 'true'},
         body: json.encode({
           'rut_cliente': rut,
           'nuevo_correo': nuevoCorreo,
