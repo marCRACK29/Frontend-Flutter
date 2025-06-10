@@ -1,14 +1,21 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/cliente_model.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 class ClienteService {
-  final String baseUrl = 'http://localhost:5000/api'; // Ajusta según tu configuración
+  final String baseUrl = dotenv.env['API_BASE_URL'] ?? 'http://127.0.0.1:5000';
+  final storage = const FlutterSecureStorage();
 
   Future<Cliente> obtenerInfoCliente(String rut) async {
     try {
       final response = await http.get(
-        Uri.parse('$baseUrl/cliente/info?rut_cliente=$rut'),
+        Uri.parse('$baseUrl/profile'),  
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
       );
 
       if (response.statusCode == 200) {
@@ -25,11 +32,11 @@ class ClienteService {
     try {
       final response = await http.put(
         Uri.parse('$baseUrl/cliente/correo'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'rut_cliente': rut,
-          'nuevo_correo': nuevoCorreo,
-        }),
+        headers: {
+          'Content-Type': 'application/json',
+          'ngrok-skip-browser-warning': 'true',
+        },
+        body: json.encode({'rut_cliente': rut, 'nuevo_correo': nuevoCorreo}),
       );
 
       if (response.statusCode == 200) {
@@ -41,4 +48,4 @@ class ClienteService {
       throw Exception('Error de conexión: $e');
     }
   }
-} 
+}
