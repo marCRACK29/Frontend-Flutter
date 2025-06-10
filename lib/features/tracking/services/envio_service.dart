@@ -4,7 +4,7 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../models/envio_model.dart';
 
 class EnvioService {
-  static String get baseUrl => dotenv.env['API_URL'] ?? 'http://localhost:8000';
+  static String get baseUrl => dotenv.env['API_URL'] ?? 'http://localhost:5000';
 
   static Future<List<Envio>> getEnviosByConductor(String conductorId) async {
     try {
@@ -19,7 +19,7 @@ class EnvioService {
           },
       );
       print('📥 Status code: ${response.statusCode}');
-      print('📥 Response body: ${response.body}');
+      // print('📥 Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final List<dynamic> data = json.decode(response.body);
@@ -45,7 +45,7 @@ class EnvioService {
         },
       );
       print('📥 Status code: ${response.statusCode}');
-      print('📥 Response body: ${response.body}');
+      // print('📥 Response body: ${response.body}');
 
       if (response.statusCode == 200) {
         final data = json.decode(response.body);
