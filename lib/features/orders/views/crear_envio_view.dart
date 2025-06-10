@@ -18,7 +18,7 @@ class _CrearEnvioScreenState extends State<CrearEnvioScreen> {
 
   final EnvioService envioService = EnvioService();
   String? remitenteId;
-
+   final String conductorId = "15.123.102-4";
   @override
   void initState() {
     super.initState();
@@ -38,7 +38,7 @@ class _CrearEnvioScreenState extends State<CrearEnvioScreen> {
         final envio = Envio(
           remitenteId: remitenteId!,
           receptorId: _receptorController.text,
-          conductorId: "15.123.102-4",
+          conductorId: conductorId,
           direccionOrigen: _origenController.text,
           direccionDestino: _destinoController.text,
         );
