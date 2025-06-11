@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:frontend/features/admin/views/envios_sin_conductor_view.dart';
 import 'package:provider/provider.dart';
 import 'package:frontend/features/maps/providers/map_provider.dart';
 import 'package:frontend/features/maps/views/openstreetmap_view.dart';
@@ -34,6 +35,7 @@ class MyApp extends StatelessWidget {
       home: const SplashScreen(),
       routes: { // Cada uno representa un distinto "feature"
         '/home': (context) => const HomeScreen(), // Home que decide si mostrar perfil de cliente o conductor
+        '/envios_sin_conductor': (context) => EnviosSinConductorView(),
         '/map': (context) => const OpenStreetMapView(), // Pantalla que proporciona el mapa con el buscador
         '/login': (context) => LoginScreen(), // Pantalla para logearse (por el momento solo para clientes nuevos)
         '/orders': (context) => const OrdersHomeView(), // Pantalla para el menu de ordenes
@@ -120,6 +122,13 @@ class HomeScreen extends StatelessWidget {
                       Navigator.pushNamed(context, '/map');
                     },
                     child: const Text('Ir al Mapa'),
+                  ),
+                ] else if (userType == 'admin') ...[
+                  ElevatedButton(
+                    onPressed: () {
+                      Navigator.pushNamed(context, '/envios_sin_conductor');
+                    },
+                    child: const Text('Envios sin asignar'),
                   ),
                 ],
                 // Botones comunes para ambos tipos de usuario
