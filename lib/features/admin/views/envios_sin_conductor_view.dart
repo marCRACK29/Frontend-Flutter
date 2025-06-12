@@ -35,21 +35,31 @@ class _EnviosSinConductorViewState extends State<EnviosSinConductorView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Pedidos sin conductor')),
+      appBar: AppBar(title: Text('Pedidos sin conductor', style: TextStyle(color: Colors.white)), backgroundColor: Colors.indigo),
       body: FutureBuilder<List>(
         future: envios,
         builder: (context, snapshot) {
           if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
           if (snapshot.data!.isEmpty) return Center(child: Text("Sin pedidos pendientes"));
           return ListView(
-            children: snapshot.data!
-                .map((e) => ListTile(
-                      title: Text('Pedido #${e['id']}'),
-                      subtitle: Text('Dirección: ${e['direccion_destino']}\nEstado: ${e['estado']['estado']}'),
-                      onTap: () => _irASeleccionarConductor(e),
-                    ))
-                .toList(),
-          );
+  children: snapshot.data!
+      .map((e) => Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.blue, width: 1),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            elevation: 2,
+            child: ListTile(
+              title: Text('Pedido #${e['id']}'),
+              subtitle: Text(
+                'Dirección: ${e['direccion_destino']}\nEstado: ${e['estado']['estado']}',
+              ),
+              onTap: () => _irASeleccionarConductor(e),
+            ),
+          ))
+      .toList(),
+);
         },
       ),
     );

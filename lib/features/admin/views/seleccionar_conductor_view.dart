@@ -51,21 +51,30 @@ class _SeleccionarConductorViewState extends State<SeleccionarConductorView> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('Seleccionar conductor')),
+      appBar: AppBar(title: Text('Seleccionar conductor', style: TextStyle(color: Colors.white)), backgroundColor: Colors.indigo),
       body: FutureBuilder<List>(
         future: conductores,
         builder: (context, snapshot) {
           if (!snapshot.hasData) return Center(child: CircularProgressIndicator());
           if (snapshot.data!.isEmpty) return Center(child: Text("Sin conductores"));
           return ListView(
-            children: snapshot.data!
-                .map((c) => ListTile(
-                      title: Text('${c['nombre']}'),
-                      subtitle: Text('RUT: ${c['RUT']}'),
-                      onTap: () => _confirmarAsignacion(c),
-                    ))
-                .toList(),
-          );
+  children: snapshot.data!
+      .map((c) => Card(
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+              side: BorderSide(color: Colors.blue, width: 1),
+            ),
+            margin: EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            elevation: 2,
+            child: ListTile(
+              title: Text('${c['nombre']}'),
+              subtitle: Text('RUT: ${c['RUT']}'),
+              onTap: () => _confirmarAsignacion(c),
+            ),
+          ))
+      .toList(),
+);
+
         },
       ),
     );
