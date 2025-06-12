@@ -50,11 +50,6 @@ class DeliveryService {
           'Content-Type': 'application/json',
         },
       ),
-);
-
+    );
   }
-
-
-
-  
 }
